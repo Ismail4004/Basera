@@ -1,0 +1,103 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block title %}Create account{% endblock %}
+
+{% block content %}
+<div class="basera-auth">
+  <section class="basera-welcome">
+    <p class="basera-eyebrow">Plants for your patch</p>
+    <h1 class="basera-hero basera-display">Put down<br>new roots.</h1>
+    <p class="basera-lede">Find plants that belong in your garden.<br>Start with a place to call your own.</p>
+  </section>
+
+  <section class="basera-panel basera-panel--compact basera-panel--raised" aria-labelledby="signup-title">
+    <div class="basera-panel__header">
+      <h2 id="signup-title" class="basera-panel__title basera-display">Create account</h2>
+      <p class="basera-panel__subtitle">Just a few details. Then let’s grow.</p>
+    </div>
+
+    <form class="basera-form basera-form--compact" method="post" action="{% url 'signup' %}" novalidate>
+      {% csrf_token %}
+      <div class="basera-fields">
+        {% with chosen=form.role.value|default_if_none:"CUSTOMER" %}
+        <fieldset class="basera-field basera-choice-field">
+          <legend class="basera-label">I’m joining as</legend>
+          <div class="basera-choice">
+            <label class="basera-choice__option">
+              <input type="radio" name="role" value="CUSTOMER" {% if chosen == "CUSTOMER" %}checked{% endif %}>
+              <span>Customer</span>
+            </label>
+            <label class="basera-choice__option">
+              <input type="radio" name="role" value="SELLER" {% if chosen == "SELLER" %}checked{% endif %}>
+              <span>Seller</span>
+            </label>
+          </div>
+          {% if form.role.errors %}<p class="basera-error">{{ form.role.errors.0 }}</p>{% endif %}
+        </fieldset>
+        {% endwith %}
+
+        <div class="basera-field">
+          <label class="basera-label" for="id_name">Your name</label>
+          <div class="basera-input-wrap{% if form.full_name.errors %} is-invalid{% endif %}">
+            <input class="basera-input" type="text" id="id_name" name="full_name"
+                   value="{{ form.full_name.value|default_if_none:'' }}"
+                   placeholder="First and last name" autocomplete="name" required maxlength="150"
+                   {% if form.full_name.errors %}aria-invalid="true" aria-describedby="name-error"{% endif %}>
+          </div>
+          {% if form.full_name.errors %}<p class="basera-error" id="name-error">{{ form.full_name.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="basera-field">
+          <label class="basera-label" for="id_email">Email</label>
+          <div class="basera-input-wrap{% if form.email.errors %} is-invalid{% endif %}">
+            <input class="basera-input" type="email" id="id_email" name="email"
+                   value="{{ form.email.value|default_if_none:'' }}"
+                   placeholder="you@example.com" autocomplete="email" required maxlength="254"
+                   {% if form.email.errors %}aria-invalid="true" aria-describedby="email-error"{% endif %}>
+          </div>
+          {% if form.email.errors %}
+            <p class="basera-error" id="email-error">
+              {{ form.email.errors.0 }}{% for e in form.email.errors.as_data %}{% if e.code == "duplicate" %} <a href="{% url 'login' %}">Log in instead</a>{% endif %}{% endfor %}
+            </p>
+          {% endif %}
+        </div>
+
+        <div class="basera-field">
+          <label class="basera-label" for="id_password">Password</label>
+          <div class="basera-input-wrap{% if form.password.errors %} is-invalid{% endif %}">
+            <input class="basera-input" type="password" id="id_password" name="password"
+                   placeholder="Choose a password" autocomplete="new-password" required
+                   aria-describedby="password-hint{% if form.password.errors %} password-error{% endif %}"
+                   {% if form.password.errors %}aria-invalid="true"{% endif %}>
+            <button class="basera-toggle" type="button" id="password-toggle"
+                    aria-controls="id_password" aria-pressed="false"
+                    aria-label="Show password">Show</button>
+          </div>
+          {% if form.password.errors %}
+            <p class="basera-error" id="password-error">{% for error in form.password.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>
+          {% else %}
+            <p class="basera-hint" id="password-hint">At least 8 characters.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <button class="basera-btn-primary" type="submit" data-loading-text="Creating account…">
+        <span class="basera-btn-primary__label">Create account</span>
+      </button>
+    </form>
+
+    <div class="basera-panel__footer">
+      <p class="basera-legal">
+        By creating an account, you agree to our<br>
+        <a href="{% url 'terms' %}">Terms of service</a> and <a href="{% url 'privacy' %}">Privacy policy</a>.
+      </p>
+      <p class="basera-switch">Have an account?&nbsp;<a href="{% url 'login' %}">Log in</a></p>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'accounts/js/password-toggle.js' %}"></script>
+{% endblock %}

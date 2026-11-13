@@ -1,0 +1,5 @@
+{% if messages %}
+  {% for message in messages %}
+    <p class="basera-notice{% if message.level_tag == 'error' %} basera-notice--error{% endif %}" role="status">{{ message }}</p>
+  {% endfor %}
+{% endif %}
