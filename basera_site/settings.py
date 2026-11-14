@@ -160,13 +160,35 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+# Real email goes out through Gmail when EMAIL_ADDRESS and EMAIL_APP_PASSWORD
+# are both set in .env (a Gmail "app password", not the account password).
+# Without them, emails are printed in the runserver console instead, so the
+# site still works for teammates who don't have the Gmail details.
+EMAIL_ADDRESS = (os.environ.get('EMAIL_ADDRESS') or '').strip()
+EMAIL_APP_PASSWORD = (os.environ.get('EMAIL_APP_PASSWORD') or '').replace(' ', '')
 
-DEFAULT_FROM_EMAIL = 'Basera <no-reply@basera.local>'
+if EMAIL_ADDRESS and EMAIL_APP_PASSWORD:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+            'OPTIONS': {
+                'host': 'smtp.gmail.com',
+                'port': 587,
+                'use_tls': True,
+                'username': EMAIL_ADDRESS,
+                'password': EMAIL_APP_PASSWORD,
+                'timeout': 15,
+            },
+        },
+    }
+    DEFAULT_FROM_EMAIL = f'Basera <{EMAIL_ADDRESS}>'
+else:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        },
+    }
+    DEFAULT_FROM_EMAIL = 'Basera <no-reply@basera.local>'
 
 
 # Authentication
