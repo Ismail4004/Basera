@@ -10,6 +10,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import LoginForm, SignUpForm
+from .models import User
+from .ui import page_band
 
 
 def _safe_next(request):
@@ -64,10 +66,18 @@ def logout_view(request):
     return redirect("login")
 
 
+# Where each role lands after logging in or signing up. These are placeholders
+# until the real landing pages are designed; each links on to the catalogue.
+HOME_TEMPLATES = {
+    User.Role.CUSTOMER: "accounts/home_customer.html",
+    User.Role.SELLER: "accounts/home_seller.html",
+    User.Role.ADMIN: "accounts/home_admin.html",
+}
+
+
 @login_required
 def home_view(request):
-    # Placeholder until a teammate builds the real Home page.
-    return render(request, "accounts/home.html")
+    return render(request, HOME_TEMPLATES[request.user.role])
 
 
 class ForgotPasswordView(auth_views.PasswordResetView):
@@ -110,3 +120,10 @@ class ResetPasswordView(auth_views.PasswordResetConfirmView):
 def placeholder(request, page_name):
     """Simple stand-in page until the real one is built."""
     return render(request, "accounts/placeholder.html", {"page_name": page_name})
+
+
+def coming_soon(request, page_name):
+    """Stand-in for a page that is built in a later story (linked from the header)."""
+    context = page_band(request, page_name, "This page is coming soon.", (page_name, None))
+    context["page_name"] = page_name
+    return render(request, "accounts/coming_soon.html", context)

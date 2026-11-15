@@ -1,0 +1,22 @@
+{% extends "accounts/site_base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% comment %}
+  PLACEHOLDER landing page for the seller role. It opens after log in or sign up.
+  Replace this template with the real design when it is ready (keep the
+  catalogue link). The view that picks it is accounts.views.home_view.
+{% endcomment %}
+
+{% block content %}
+<div class="bt-container bt-placeholder">
+  <p class="bt-eyebrow">Coming soon</p>
+  <h1 class="bt-display">Hi, {{ user.get_short_name }}.</h1>
+  <p class="bt-lede">Your seller landing page is being designed. For now, you can look at the catalogue as customers see it.</p>
+  <p class="bt-meta">Account type: <strong>{{ user.get_role_display }}</strong> · {{ user.email }}</p>
+  <div class="bt-actions">
+    <a class="bt-btn" href="{% url 'catalogue' %}">Browse the catalogue</a>
+    
+  </div>
+</div>
+{% endblock %}

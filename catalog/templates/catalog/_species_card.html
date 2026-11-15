@@ -1,0 +1,26 @@
+{% load static %}{# One species card (catalogue grid and "related" rows). Needs: species, viewer. #}
+<article class="bt-card{% if species.is_invasive %} bt-card--invasive{% endif %}">
+  <a class="bt-card__photo" href="{% url 'species_detail' species.pk %}" tabindex="-1" aria-hidden="true">
+    {% if species.image %}<img src="{{ species.image.url }}" alt="" loading="lazy">{% else %}
+      <img src="{% static 'catalog/img/placeholder.svg' %}" alt="" loading="lazy">{% endif %}
+    {% if species.is_invasive %}<span class="bt-tag bt-tag--red">Invasive — not sold</span>
+    {% elif species.stock_qty == 0 %}<span class="bt-tag bt-tag--dark">Out of stock</span>{% endif %}
+  </a>
+  <div class="bt-card__body">
+    <h3 class="bt-card__name"><a href="{% url 'species_detail' species.pk %}">{{ species.common_name }}</a></h3>
+    <p class="bt-card__sci">{{ species.scientific_name }}</p>
+    <p class="bt-card__price">Rs {{ species.price|floatformat:"0g" }}</p>
+    {% if species.is_invasive %}
+      <span class="bt-btn bt-btn--disabled" aria-disabled="true">Not sold</span>
+    {% elif species.stock_qty == 0 %}
+      <span class="bt-btn bt-btn--disabled" aria-disabled="true">Out of stock</span>
+    {% elif viewer == "guest" %}
+      <a class="bt-btn" href="{% url 'login' %}?next={% url 'species_detail' species.pk %}">Add to cart</a>
+    {% elif viewer == "customer" %}
+      {# The cart is built in a later story (US-19); this goes to its placeholder for now. #}
+      <a class="bt-btn" href="{% url 'cart' %}">Add to cart</a>
+    {% else %}
+      <a class="bt-btn bt-btn--outline" href="{% url 'species_detail' species.pk %}">View details</a>
+    {% endif %}
+  </div>
+</article>
