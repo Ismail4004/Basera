@@ -1,0 +1,21 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}{{ page_name }}{% endblock %}
+
+{% block content %}
+<div class="basera-auth">
+  <section class="basera-welcome">
+    <p class="basera-eyebrow">Coming soon</p>
+    <h1 class="basera-hero basera-display">{{ page_name }}</h1>
+    <p class="basera-lede">We will build this page later.</p>
+  </section>
+
+  <section class="basera-panel" aria-labelledby="placeholder-title">
+    <div class="basera-panel__header">
+      <h2 id="placeholder-title" class="basera-panel__title basera-display">{{ page_name }}</h2>
+      <p class="basera-panel__subtitle">This is a placeholder page.</p>
+    </div>
+    <a class="basera-btn-primary" href="{% url 'login' %}">Back to log in</a>
+  </section>
+</div>
+{% endblock %}
