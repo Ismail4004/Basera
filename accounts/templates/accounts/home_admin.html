@@ -46,11 +46,16 @@
       <section class="bt-panel">
         <h3>Good growth, week by week.</h3>
         <p class="bt-muted">Order value · {{ month_label }}</p>
+        {% if orders_placed %}
         <ul class="bt-chart">
           {% for w in weeks %}
           <li><span class="bt-chart__bar" style="height: {{ w.pct }}%" title="{{ w.text }}"></span><strong>{{ w.text }}</strong><span>{{ w.label }}</span></li>
           {% endfor %}
         </ul>
+        {% else %}
+        {# Four flat stubs read as a broken chart; say what the empty weeks mean. #}
+        <p class="bt-chart-empty">No orders yet in {{ month_label }}. Each week's order value appears here once sales start.</p>
+        {% endif %}
       </section>
       <section class="bt-panel">
         <h3>A little attention needed.</h3>

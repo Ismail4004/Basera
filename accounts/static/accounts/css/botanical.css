@@ -212,6 +212,7 @@ h1, h2, h3 {
   border-radius: 4px 12px 12px 4px;
   color: var(--bt-forest);
 }
+.bt-notice--info { background: var(--bt-sage-tint); border-left-color: var(--bt-sage); }
 .bt-notice--error, .bt-notice--danger {
   background: var(--bt-coral-tint); border-left-color: var(--bt-coral); color: #8a2f1c;
 }
@@ -259,7 +260,16 @@ h1, h2, h3 {
   box-shadow: var(--bt-shadow);
   overflow: hidden;
 }
-.bt-card__photo { position: relative; display: block; aspect-ratio: 304 / 236; background: var(--bt-sage-tint); }
+.bt-card__photo {
+  position: relative; display: block;
+  /* flex: none + min-height: 0 keep every card photo at the same ratio: without
+     them a portrait photo lifts the flex item's automatic minimum height and the
+     photo boxes end up different sizes in the grid. */
+  flex: none; min-height: 0;
+  aspect-ratio: 304 / 236;
+  overflow: hidden;
+  background: var(--bt-sage-tint);
+}
 .bt-card__photo img { width: 100%; height: 100%; object-fit: cover; }
 .bt-card--invasive .bt-card__photo img { filter: saturate(0.85); }
 .bt-card__body { display: flex; flex-direction: column; flex: 1; padding: 14px 16px 16px; gap: 3px; }
@@ -336,11 +346,25 @@ h1, h2, h3 {
 /* ---------- Footer ---------- */
 
 .bt-footer {
-  background:
-    url("../img/botanical-footer.jpg") right bottom / auto 215px no-repeat,
-    linear-gradient(180deg, var(--bt-bg), #f6e8d0);
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, var(--bt-bg), #f6e8d0);
+}
+/* The flower illustration is a separate, transparent layer so it sits on the
+   footer gradient without showing the cream rectangle of the original file. */
+.bt-footer::before {
+  content: "";
+  position: absolute; right: 0; bottom: 0;
+  width: min(52%, 645px); height: 215px;
+  background: url("../img/botanical-footer.png") right bottom / contain no-repeat;
+  /* The PNG is keyed to true transparency, so no blend mode is needed. */
+  /* Let the stems dissolve above the legal line instead of covering it. */
+  -webkit-mask-image: linear-gradient(180deg, #000 62%, rgba(0, 0, 0, 0.15) 94%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 62%, rgba(0, 0, 0, 0.15) 94%, transparent 100%);
+  pointer-events: none;
 }
 .bt-footer__inner {
+  position: relative;
   max-width: calc(var(--bt-width) + 2 * var(--bt-gutter));
   margin: 0 auto; padding: 44px var(--bt-gutter) 28px;
   background: linear-gradient(90deg, transparent 0, transparent 60%, transparent);
@@ -379,7 +403,26 @@ h1, h2, h3 {
 .bt-header--over .bt-icon-link, .bt-header--over .bt-link-button, .bt-header--over .bt-menu-toggle { color: var(--bt-on-dark); }
 .bt-header--over .bt-nav a { background-image: linear-gradient(var(--bt-on-dark), var(--bt-on-dark)); }
 .bt-header--over .bt-badge { background: var(--bt-on-dark); color: var(--bt-forest); }
-.bt-hero { position: relative; min-height: 680px; padding-top: 120px; background-size: cover; background-position: center; display: flex; align-items: center; color: var(--bt-on-dark); }
+.bt-hero {
+  position: relative;
+  /* Grows with the screen so the photo is cropped mostly at the bottom and the
+     subject keeps her headroom. */
+  min-height: clamp(680px, 42vw, 880px);
+  padding-top: 120px;
+  display: flex; align-items: center;
+  color: var(--bt-on-dark);
+  background-color: var(--bt-forest);
+  /* The photo (woman looking after potted plants) plus two scrims: a light one
+     under the transparent header and a stronger one from the left so the copy
+     stays readable over the picture. */
+  background-image:
+    linear-gradient(180deg, rgba(26, 44, 33, 0.78) 0, rgba(26, 44, 33, 0.34) 170px, rgba(26, 44, 33, 0.1) 300px, rgba(26, 44, 33, 0) 400px),
+    linear-gradient(90deg, rgba(26, 44, 33, 0.88) 0%, rgba(26, 44, 33, 0.7) 38%, rgba(26, 44, 33, 0.28) 62%, rgba(26, 44, 33, 0.06) 86%, rgba(26, 44, 33, 0) 100%),
+    url("../img/botanical-hero.jpg");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
 .bt-hero__inner { width: 100%; max-width: calc(var(--bt-width) + 2 * var(--bt-gutter)); margin: 0 auto; padding: 24px var(--bt-gutter) 56px; }
 .bt-hero__eyebrow { margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .bt-hero__title { color: var(--bt-on-dark); font-size: 88px; line-height: 0.98; letter-spacing: -0.03em; }
@@ -456,7 +499,7 @@ h1, h2, h3 {
 
 .bt-stock-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 14px; }
 .bt-stock-list li { display: flex; align-items: center; gap: 14px; }
-.bt-stock-list img { border-radius: 10px; object-fit: cover; }
+.bt-stock-list img { width: 56px; height: 56px; flex: none; border-radius: 10px; object-fit: cover; }
 .bt-stock-list div { flex: 1; display: flex; flex-direction: column; font-size: 14px; color: var(--bt-muted); }
 .bt-stock-list strong { color: var(--bt-forest); font-size: 16px; }
 
@@ -485,7 +528,9 @@ h1, h2, h3 {
 .bt-side nav a { display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; color: var(--bt-forest); font-weight: 700; text-decoration: none; }
 .bt-side nav a:hover { background: var(--bt-sage-tint); }
 .bt-side nav a.is-active { background: var(--bt-forest); color: var(--bt-on-dark); }
-.bt-count { padding: 0 8px; border-radius: 99px; background: var(--bt-coral); color: #fff; font-size: 12px; line-height: 20px; }
+/* Only the numbered badge in the admin sidebar uses the pill styling; plain
+   .bt-count (the catalogue result line) keeps its own rule above. */
+.bt-side nav a .bt-count { padding: 0 8px; border-radius: 99px; background: var(--bt-coral); color: #fff; font-size: 12px; line-height: 20px; }
 .bt-health { display: flex; align-items: center; gap: 8px; margin: 18px 10px; font-size: 14px; color: var(--bt-forest); font-weight: 700; }
 .bt-side__help { padding: 14px 10px 0; border-top: 1px solid var(--bt-line); font-size: 14px; }
 .bt-side__help p { margin: 0; color: var(--bt-muted); }
@@ -494,6 +539,7 @@ h1, h2, h3 {
 .bt-chart li { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; font-size: 12px; color: var(--bt-muted); text-align: center; }
 .bt-chart strong { color: var(--bt-forest); font-size: 13px; }
 .bt-chart__bar { display: block; width: 100%; min-height: 6px; background: var(--bt-forest); border-radius: 8px 8px 0 0; }
+.bt-chart-empty { margin: 18px 0 0; min-height: 210px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; border: 1px dashed var(--bt-line-strong); border-radius: 12px; color: var(--bt-muted); }
 .bt-attention { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 12px; }
 .bt-attention li { display: grid; grid-template-columns: 52px 1fr auto; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--bt-line); }
 .bt-attention li:last-child { border-bottom: 0; }
@@ -574,7 +620,7 @@ h1, h2, h3 {
   .bt-detail__name { font-size: 32px; }
   .bt-section-title { font-size: 28px; }
   .bt-tabs__list { overflow-x: auto; }
-  .bt-footer { background-size: auto 140px, auto; }
+  .bt-footer::before { height: 140px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
