@@ -1,0 +1,86 @@
+{% load static %}
+{% comment %}
+  The cart itself. Included by the page and returned on its own after an HTMX
+  change, so every control sits inside #cart-body and swaps the whole body.
+{% endcomment %}
+{% if lines %}
+  <div class="bt-split bt-cart">
+    <div>
+      <ul class="bt-cart__list" role="list">
+        {% for line in lines %}
+          <li class="bt-cart-line">
+            <a class="bt-cart-line__photo" href="{% url 'species_detail' line.species.pk %}" tabindex="-1" aria-hidden="true">
+              {% if line.species.image %}<img src="{{ line.species.image.url }}" alt="" loading="lazy">
+              {% else %}<img src="{% static 'catalog/img/placeholder.svg' %}" alt="" loading="lazy">{% endif %}
+            </a>
+
+            <div class="bt-cart-line__body">
+              <h2 class="bt-cart-line__name"><a href="{% url 'species_detail' line.species.pk %}">{{ line.species.common_name }}</a></h2>
+              <p class="bt-card__sci">{{ line.species.scientific_name }}</p>
+              <p class="bt-cart-line__meta">Rs {{ line.species.price|floatformat:"0g" }} each &middot; Sold by {{ line.species.seller.full_name }}</p>
+              {% if line.unavailable %}
+                <p class="bt-cart-line__warn">No longer available — remove it before you check out.</p>
+              {% elif line.at_limit %}
+                <p class="bt-cart-line__meta">All {{ line.species.stock_qty }} in stock are already in your cart.</p>
+              {% endif %}
+            </div>
+
+            <div class="bt-qty" role="group" aria-label="Quantity of {{ line.species.common_name }}">
+              <form method="post" action="{% url 'cart_update' line.species.pk %}"
+                    hx-post="{% url 'cart_update' line.species.pk %}" hx-target="#cart-body" hx-swap="outerHTML"
+                    hx-indicator="#cart-body" hx-disabled-elt="find button">
+                {% csrf_token %}
+                <input type="hidden" name="delta" value="-1">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="bt-qty__btn" type="submit" {% if line.quantity <= 1 %}disabled{% endif %}
+                        data-cart-action="dec-{{ line.species.pk }}"
+                        aria-label="One fewer {{ line.species.common_name }}">&minus;</button>
+              </form>
+              <span class="bt-qty__value">{{ line.quantity }}</span>
+              <form method="post" action="{% url 'cart_update' line.species.pk %}"
+                    hx-post="{% url 'cart_update' line.species.pk %}" hx-target="#cart-body" hx-swap="outerHTML"
+                    hx-indicator="#cart-body" hx-disabled-elt="find button">
+                {% csrf_token %}
+                <input type="hidden" name="delta" value="1">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="bt-qty__btn" type="submit" {% if line.at_limit or line.unavailable %}disabled{% endif %}
+                        data-cart-action="inc-{{ line.species.pk }}"
+                        aria-label="One more {{ line.species.common_name }}">+</button>
+              </form>
+            </div>
+
+            <p class="bt-cart-line__total">Rs {{ line.line_total|floatformat:"0g" }}</p>
+
+            <form class="bt-cart-line__remove" method="post" action="{% url 'cart_remove' line.species.pk %}"
+                  hx-post="{% url 'cart_remove' line.species.pk %}" hx-target="#cart-body" hx-swap="outerHTML"
+                  hx-indicator="#cart-body" hx-disabled-elt="find button">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button class="bt-link-button" type="submit" data-cart-action="remove-{{ line.species.pk }}">Remove<span class="bt-visually-hidden"> {{ line.species.common_name }} from your cart</span></button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <p class="bt-cart__continue"><a class="bt-arrow-link" href="{% url 'catalogue' %}">&larr; Keep browsing plants</a></p>
+    </div>
+
+    <aside class="bt-panel bt-cart__summary" aria-label="Order summary">
+      <h2 class="bt-cart__summary-title">Your order</h2>
+      <dl class="bt-cart__totals">
+        <div><dt>Plants</dt><dd>{{ plant_count }}</dd></div>
+        <div><dt>Subtotal</dt><dd>Rs {{ subtotal|floatformat:"0g" }}</dd></div>
+        <div><dt>Delivery</dt><dd>Cash on delivery</dd></div>
+      </dl>
+      <p class="bt-cart__note">Checkout is the next story. These totals are what you'll pay once it lands.</p>
+      <span class="bt-btn bt-btn--disabled" aria-disabled="true">Checkout coming soon</span>
+    </aside>
+  </div>
+{% else %}
+  <div class="bt-panel bt-cart__empty">
+    <p class="bt-eyebrow">Nothing here yet</p>
+    <h2>Your cart is empty.</h2>
+    <p class="bt-muted">Browse the catalogue and add the native plants that suit your patch.</p>
+    <a class="bt-btn" href="{% url 'catalogue' %}">Browse the catalogue</a>
+  </div>
+{% endif %}

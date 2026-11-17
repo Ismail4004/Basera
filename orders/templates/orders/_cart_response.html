@@ -1,0 +1,9 @@
+{% comment %}
+  Fragment answer for a change made on the cart page: the body is swapped in
+  place and the header link follows out of band. Messages travel in the
+  HX-Trigger header (see orders.views._finish).
+{% endcomment %}
+{% include "accounts/includes/cart_link.html" with oob=1 %}
+<div id="cart-body">
+  {% include "orders/_cart_body.html" %}
+</div>

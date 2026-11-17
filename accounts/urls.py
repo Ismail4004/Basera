@@ -16,7 +16,6 @@ urlpatterns = [
     path("profiles/", views.coming_soon, {"page_name": "My Grow Profiles"}, name="grow_profiles"),
     path("matches/", views.coming_soon, {"page_name": "Match Results"}, name="match_results"),
     path("about/", views.coming_soon, {"page_name": "About"}, name="about"),
-    path("cart/", views.coming_soon, {"page_name": "Cart"}, name="cart"),
     path("seller/listings/", views.coming_soon, {"page_name": "My Listings"}, name="seller_listings"),
     path("seller/orders/", views.coming_soon, {"page_name": "Orders"}, name="seller_orders"),
     path("seller/earnings/", views.coming_soon, {"page_name": "Earnings"}, name="seller_earnings"),

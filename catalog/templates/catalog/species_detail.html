@@ -51,8 +51,14 @@
         {% elif viewer == "guest" %}
           <a class="bt-btn" href="{% url 'login' %}?next={% url 'species_detail' species.pk %}">Log in to add to cart</a>
         {% elif viewer == "customer" %}
-          {# The cart is built in a later story (US-19); this goes to its placeholder for now. #}
-          <a class="bt-btn" href="{% url 'cart' %}">Add to cart</a>
+          {# US-19: a POST so adding to the cart is never a side effect of a link. #}
+          <form class="bt-btn-form" method="post" action="{% url 'cart_add' species.pk %}"
+                hx-post="{% url 'cart_add' species.pk %}" hx-swap="none" hx-disabled-elt="find button">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="bt-btn" type="submit">Add to cart</button>
+          </form>
+          <a class="bt-btn bt-btn--outline" href="{% url 'cart' %}">View cart</a>
         {% endif %}
       </div>
 

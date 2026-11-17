@@ -1,0 +1,17 @@
+{% extends "accounts/site_base.html" %}
+
+{% block title %}Your cart{% endblock %}
+
+{% comment %}
+  US-19: the cart. The body is an include so the same markup can be swapped
+  back in after an HTMX change (orders.views returns orders/_cart_response.html
+  for those requests) instead of reloading the page.
+{% endcomment %}
+
+{% block content %}
+<div class="bt-container">
+  <div id="cart-body">
+    {% include "orders/_cart_body.html" %}
+  </div>
+</div>
+{% endblock %}
