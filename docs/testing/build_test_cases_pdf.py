@@ -308,6 +308,17 @@ NEW_SECT += [
     ]),
 ]
 
+LY = "accounts.test_layout.OneScreenLayoutTests."
+NEW_SECT += [
+    ("A20. One-screen layout of the log in pages (accounts/test_layout.py)", [
+        ("LY-01", "Extra scroll room on the log in, sign-up and password pages", "None: the page is exactly one screen tall", LY + "test_ly01_the_auth_pages_have_no_extra_scroll_room"),
+        ("LY-02", "Page height", "Follows the visible screen, including phone browser bars (100dvh)", LY + "test_ly02_the_page_height_follows_the_visible_screen_including_phone_bars"),
+        ("LY-03", "Short desktop screens", "Tighter spacing at three heights (860, 740 and 680 px)", LY + "test_ly03_short_desktop_screens_get_tighter_spacing_at_three_heights"),
+        ("LY-04", "Compact layouts", "Fields and buttons never drop below 44 px tall", LY + "test_ly04_fields_and_buttons_stay_44px_tall_in_the_compact_layouts"),
+        ("LY-05", "Login background", "The image file the stylesheet names exists", LY + "test_ly05_the_login_background_file_the_css_names_exists"),
+    ]),
+]
+
 # --------------------------------------------------------------------------------------
 # Manual cases: (ID, test case, expected result, result)
 # Result words: Pass | Carried over (files unchanged since Shehroze's run) | Not re-run | Open
@@ -359,6 +370,9 @@ MANUAL_NEW = [
     ("M-42", "Branded 404 page in the browser", "Butterfly, large 404, \"Page not found\", Back to home and Browse catalogue; matches the Figma design", "Pass"),
     ("M-43", "Speed rehearsal in production mode", "File names carry a hash and are cached for a year; the main stylesheet is 19 KB, 5 KB gzipped; plant photos cached for a week; all 12 catalogue photos (800 KB) load at once; catalogue page HTML in 0.02 s", "Pass"),
     ("M-44", "Local media folder after a full test run", "Stays at 35 photos (before the fix every run added 35 duplicates; 4,330 had piled up and were removed)", "Pass"),
+    ("M-45", "Log in page fits one screen (no scrolling)", "At 1366x768, 1366x657 and 1920x1000 the page is exactly the screen height; \"Basera. Grow local.\", Privacy, Terms and Help are all visible", "Pass"),
+    ("M-46", "Sign-up page (the tallest form) fits one screen", "Fits at 1920x1000, 1366x768, 1280x720 and 1366x657 (it overflowed by 21 px and 50 px at the last two before the compact layout was added)", "Pass"),
+    ("M-47", "Forgot-password page fits one screen", "Fits at 1366x768 and 1366x657; tap targets stay 44 px (a 43 px reading was only the entrance animation at 98% scale)", "Pass"),
 ]
 DEPLOY = [
     ("DP-01", "manage.py check", "No issues", "Pass"),
@@ -382,6 +396,7 @@ FINDINGS = [
     "M-01 to M-03 are carried over: the login, sign-up and forgot-password templates, styles and scripts are identical to Shehroze's branch (checked with git diff).",
     "Production setup was added after the first test run (sections A17 and A18, M-39 to M-42). The production build was rehearsed on this computer with a scratch database, debug off and gunicorn.",
     "After the live site felt slow, images and caching were cut (A19, M-43): plant photos 5.1 to 2.6 MB, hero 349 to 189 KB, login background 1 MB PNG to 99 KB JPEG, hashed and compressed static files, cached photos, 2 workers with 4 threads. A hidden problem was also fixed: older tests had written 4,330 duplicate photos into the real media folder.",
+    "The log in, sign-up and password pages were made exactly one screen tall (A20, M-45 to M-47) so the footer links are visible without scrolling. A phone, a window shorter than about 650 px, or a form showing error messages can still scroll rather than cut content off.",
     "Still open: DP-07 (the Gmail details must be entered on the Render dashboard), DP-11 (the live site must be created from the Render account) and DP-12 (smoke test of the live address).",
     "On a very tall window (over 1100 px) a cream strip shows under the customer hero. This is the deliberate height cap (M-36).",
 ]
@@ -450,7 +465,7 @@ def build(out):
             f"Deployment readiness: {count('Pass', DEPLOY)} passed, {count('Open', DEPLOY)} open.", sub),
         Paragraph(f"Run on the dev branch (commit {commit}, branch {branch}) on {date.today():%d %B %Y}. "
                   "Sections A1 to A6 and tests M-01 to M-19 are Shehroze's original cases, re-run on dev. "
-                  "Sections A7 to A19, M-20 to M-44 and section C were added after the catalogue, cart, grow profile, "
+                  "Sections A7 to A20, M-20 to M-47 and section C were added after the catalogue, cart, grow profile, "
                   "matching and landing page work was merged, and production setup was added.", note),
         Paragraph("Result words: Pass = performed and passed. Carried over = the files are unchanged since Shehroze's "
                   "passing run (checked with git diff). Not re-run = could not be repeated in this run (reason given). "
