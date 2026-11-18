@@ -156,3 +156,55 @@ class MatchPageTests(Base):
     def test_logged_out_visitors_are_sent_to_log_in(self):
         self.client.logout()
         self.assertEqual(self.client.get(self.url()).status_code, 302)
+
+
+@FAST_HASHERS
+class ReasonTests(Base):
+    """US-09: every reason is written from the same numbers as the score."""
+
+    def reasons(self, species):
+        return {c.key: c for c in services.score_species(self.profile, species)}
+
+    def test_each_match_has_one_reason_per_criterion_in_plain_language(self):
+        r = self.reasons(self.species("Neem"))
+        self.assertEqual(list(r), ["sunlight", "soil", "water", "setting", "purpose"])
+        self.assertEqual(r["sunlight"].reason, "Prefers full sun — your space gets full sun.")
+        self.assertEqual(r["soil"].reason, "Prefers loam soil — your soil is loam.")
+        self.assertEqual(r["water"].reason, "Needs medium water — you can provide medium water.")
+        self.assertEqual(r["setting"].reason, "Grows outdoors — your space is outdoor.")
+        self.assertEqual(r["purpose"].reason, "Good for shade and cooling — matches your purpose.")
+        self.assertTrue(all(c.state == "match" for c in r.values()))
+
+    def test_partial_and_no_match_say_why(self):
+        self.profile.soil_type = "SANDY"
+        r = self.reasons(self.species("A", light_need="Partial shade", water_need="High", suitable_soils="Loam",
+                                      setting="INDOOR", ecological_role="Feeds bees."))
+        self.assertEqual((r["sunlight"].state, r["sunlight"].reason),
+                         ("partial", "Prefers partial shade — your space gets full sun."))
+        self.assertEqual((r["soil"].state, r["soil"].reason),
+                         ("partial", "Prefers loam soil — adaptable, but your soil is sandy."))
+        self.assertEqual(r["water"].reason, "Needs high water — you can provide medium water.")
+        self.assertEqual((r["setting"].state, r["setting"].reason), ("no match", "Grows indoors — your space is outdoor."))
+        self.assertEqual((r["purpose"].state, r["purpose"].reason),
+                         ("no match", "Used for pollinators — not shade and cooling."))
+
+    def test_the_state_always_agrees_with_the_points(self):
+        for species in (self.species("A"), self.species("B", light_need="Shade", water_need="High",
+                                                        suitable_soils="Clay", setting="INDOOR")):
+            for c in services.score_species(self.profile, species):
+                expected = "match" if c.fraction == 1 else "partial" if c.fraction > 0 else "no match"
+                self.assertEqual(c.state, expected)
+
+    def test_a_species_with_unrecorded_needs_scores_zero_there_and_says_so(self):
+        r = self.reasons(self.species("Odd", light_need="", suitable_soils=""))
+        self.assertEqual((r["sunlight"].fraction, r["sunlight"].reason), (0.0, "Its sunlight need isn't recorded."))
+        self.assertEqual(r["soil"].reason, "Its soil need isn't recorded.")
+
+    def test_cards_show_the_reasons_and_the_ecological_benefit(self):
+        self.client.force_login(self.customer)
+        self.species("Neem", ecological_role="Provides dense shade and its flowers support bees.")
+        page = self.client.get(reverse("match_profile", args=[self.profile.pk]))
+        self.assertContains(page, "Why it fits your space")
+        self.assertContains(page, "Prefers full sun — your space gets full sun.")
+        self.assertContains(page, "Ecological benefit:")
+        self.assertContains(page, "Provides dense shade and its flowers support bees.")

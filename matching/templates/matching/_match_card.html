@@ -11,7 +11,16 @@
       <span class="bt-tag bt-tag--inline">Native</span>
       {% if not m.in_stock %}<span class="bt-tag bt-tag--inline bt-tag--red">Out of stock</span>{% endif %}</h3>
     <p class="bt-card__sci">{{ species.scientific_name }}</p>
-    {% if species.ecological_role %}<p class="bt-match__role">{{ species.ecological_role }}</p>{% endif %}
+    {% if species.ecological_role %}<p class="bt-match__role"><strong>Ecological benefit:</strong> {{ species.ecological_role }}</p>{% endif %}
+    <h4 class="bt-match__why">Why it fits your space</h4>
+    <ul class="bt-reasons">
+      {% for c in m.criteria %}
+      <li class="bt-reason bt-reason--{{ c.state|slugify }}">
+        <span class="bt-reason__icon" aria-hidden="true">{% if c.state == "match" %}✔{% elif c.state == "partial" %}◐{% else %}✘{% endif %}</span>
+        <span><span class="bt-sr">{% if c.state == "match" %}Matches: {% elif c.state == "partial" %}Partly matches: {% else %}Doesn’t match: {% endif %}</span>{{ c.reason }}</span>
+      </li>
+      {% endfor %}
+    </ul>
   </div>
   <div class="bt-match__side">
     <p class="bt-fit bt-fit--{{ m.tier }} bt-fit--score" title="{{ m.tier_label }}"><strong>{{ m.score }}%</strong> <span>MATCH</span></p>

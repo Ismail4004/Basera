@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from catalog.models import PlantSpecies
 from catalog.queries import visible_species
 
+from growprofiles import choices
+
 from . import vocabulary
 
 WEIGHTS = {"sunlight": 30, "soil": 25, "water": 20, "setting": 15, "purpose": 10}
@@ -81,9 +83,15 @@ def _state(fraction):
 
 
 def score_species(profile, species):
-    """The five criteria for one species against one profile."""
-    sun = _ordinal_fraction(SUN_LEVEL.get(profile.sunlight), vocabulary.sun_level(species.light_need))
-    water = _ordinal_fraction(WATER_LEVEL.get(profile.water_availability), vocabulary.water_level(species.water_need))
+    """The five criteria for one species against one profile, each with its reason.
+
+    The reason is written from the same numbers as the score (the fraction and
+    the values compared), so the two can never disagree.
+    """
+    species_sun = vocabulary.sun_level(species.light_need)
+    species_water = vocabulary.water_level(species.water_need)
+    sun = _ordinal_fraction(SUN_LEVEL.get(profile.sunlight), species_sun)
+    water = _ordinal_fraction(WATER_LEVEL.get(profile.water_availability), species_water)
 
     soils = vocabulary.soil_codes(species.suitable_soils)
     if profile.soil_type in soils:
@@ -94,10 +102,69 @@ def score_species(profile, species):
         soil = 0.0
 
     setting = 1.0 if species.setting in (profile.space_type, PlantSpecies.Setting.BOTH) else 0.0
-    purpose = 1.0 if profile.purpose in vocabulary.purposes(species) else 0.0
+    species_purposes = vocabulary.purposes(species)
+    purpose = 1.0 if profile.purpose in species_purposes else 0.0
 
+    mine = {
+        "sun": _lower(choices.label_for(choices.SUNLIGHT, profile.sunlight)),
+        "soil": _lower(choices.label_for(choices.SOILS, profile.soil_type)),
+        "water": _lower(choices.label_for(choices.WATER, profile.water_availability)),
+        "space": _lower(choices.label_for(choices.SPACE_TYPES, profile.space_type)),
+    }
+    reasons = {
+        "sunlight": (f"Prefers {_SUN_WORDS[species_sun]} — your space gets {mine['sun']}."
+                     if species_sun is not None else "Its sunlight need isn't recorded."),
+        "soil": _soil_reason(soil, soils, mine["soil"]),
+        "water": (f"Needs {_WATER_WORDS[species_water]} water — you can provide {mine['water']} water."
+                  if species_water is not None else "Its water need isn't recorded."),
+        "setting": _setting_reason(species.setting, mine["space"]),
+        "purpose": _purpose_reason(profile.purpose, species_purposes),
+    }
     fractions = {"sunlight": sun, "soil": soil, "water": water, "setting": setting, "purpose": purpose}
-    return [Criterion(key, WEIGHTS[key], fractions[key], _state(fractions[key])) for key in WEIGHTS]
+    return [Criterion(key, WEIGHTS[key], fractions[key], _state(fractions[key]), reasons[key]) for key in WEIGHTS]
+
+
+_SUN_WORDS = {2: "full sun", 1: "partial shade", 0: "shade"}
+_WATER_WORDS = {0: "low", 1: "medium", 2: "high"}
+_PURPOSE_WORDS = {
+    "SHADE_COOLING": "shade and cooling", "FOOD": "food", "POLLINATOR": "pollinators",
+    "EROSION_CONTROL": "erosion control", "ORNAMENTAL": "ornament", "MEDICINAL": "medicine",
+}
+
+
+def _lower(text):
+    return text[:1].lower() + text[1:]
+
+
+def _join(words):
+    words = sorted(words)
+    return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " or " + words[-1]
+
+
+def _soil_reason(fraction, soils, mine):
+    if not soils:
+        return "Its soil need isn't recorded."
+    names = _join(choices.label_for(choices.SOILS, c).lower() for c in soils)
+    if fraction == 1:
+        return f"Prefers {names} soil — your soil is {mine}."
+    if fraction == 0.5:
+        return f"Prefers {names} soil — adaptable, but your soil is {mine}."
+    return f"Prefers {names} soil — your soil is {mine}."
+
+
+def _setting_reason(setting, space):
+    grows = {"INDOOR": "indoors", "OUTDOOR": "outdoors", "BOTH": "indoors or outdoors"}.get(setting, setting.lower())
+    return f"Grows {grows} — your space is {space}."
+
+
+def _purpose_reason(wanted, species_purposes):
+    goal = _PURPOSE_WORDS.get(wanted, wanted.lower())
+    if wanted in species_purposes:
+        return f"Good for {goal} — matches your purpose."
+    if species_purposes:
+        used = _join(_PURPOSE_WORDS[c] for c in species_purposes)
+        return f"Used for {used} — not {goal}."
+    return f"Not specifically used for {goal}."
 
 
 def candidates(profile):
