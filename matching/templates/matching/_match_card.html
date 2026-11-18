@@ -1,0 +1,42 @@
+{% load static %}{# One ranked match. Needs: m (matching.services.Match), forloop.counter, viewer. #}
+{% with species=m.species %}
+<li class="bt-match bt-panel">
+  <a class="bt-match__photo" href="{% url 'species_detail' species.pk %}" tabindex="-1" aria-hidden="true">
+    {% if species.image %}<img src="{{ species.image.url }}" alt="" loading="lazy">{% else %}
+      <img src="{% static 'catalog/img/placeholder.svg' %}" alt="" loading="lazy">{% endif %}
+  </a>
+  <div class="bt-match__body">
+    <p class="bt-match__rank">#{{ forloop.counter }}</p>
+    <h3 class="bt-match__name"><a href="{% url 'species_detail' species.pk %}">{{ species.common_name }}</a>
+      <span class="bt-tag bt-tag--inline">Native</span>
+      {% if not m.in_stock %}<span class="bt-tag bt-tag--inline bt-tag--red">Out of stock</span>{% endif %}</h3>
+    <p class="bt-card__sci">{{ species.scientific_name }}</p>
+    {% if species.ecological_role %}<p class="bt-match__role"><strong>Ecological benefit:</strong> {{ species.ecological_role }}</p>{% endif %}
+    <h4 class="bt-match__why">Why it fits your space</h4>
+    <ul class="bt-reasons">
+      {% for c in m.criteria %}
+      <li class="bt-reason bt-reason--{{ c.state|slugify }}">
+        <span class="bt-reason__icon" aria-hidden="true">{% if c.state == "match" %}✔{% elif c.state == "partial" %}◐{% else %}✘{% endif %}</span>
+        <span><span class="bt-sr">{% if c.state == "match" %}Matches: {% elif c.state == "partial" %}Partly matches: {% else %}Doesn’t match: {% endif %}</span>{{ c.reason }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="bt-match__side">
+    <p class="bt-fit bt-fit--{{ m.tier }} bt-fit--score" title="{{ m.tier_label }}"><strong>{{ m.score }}%</strong> <span>MATCH</span></p>
+    <p class="bt-match__price">Rs {{ species.price|floatformat:"0g" }}</p>
+    <p class="bt-match__stock{% if not m.in_stock %} is-out{% endif %}">{% if m.in_stock %}In stock · {{ species.stock_qty }} available{% else %}Out of stock{% endif %}</p>
+    <div class="bt-match__actions">
+      <a class="bt-btn bt-btn--outline" href="{% url 'species_detail' species.pk %}">View details</a>
+      {% if m.in_stock and viewer == "customer" %}
+      <form class="bt-btn-form" method="post" action="{% url 'cart_add' species.pk %}"
+            hx-post="{% url 'cart_add' species.pk %}" hx-swap="none" hx-disabled-elt="find button">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="bt-btn" type="submit">Add to cart</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</li>
+{% endwith %}

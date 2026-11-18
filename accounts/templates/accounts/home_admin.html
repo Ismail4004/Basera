@@ -1,0 +1,110 @@
+{% extends "accounts/site_base.html" %}
+{% load static %}
+
+{% block title %}Admin home{% endblock %}
+
+{% comment %}
+  Admin landing page (Figma: "Admin landing · Botanical"). Opens after log in or sign up.
+  Context from accounts.landing.admin_context.
+{% endcomment %}
+
+{% block header %}{% include "accounts/includes/role_header.html" with role_label="Admin" %}{% endblock %}
+{% block band %}{% endblock %}
+
+{% block content %}
+<div class="bt-container bt-admin">
+  <aside class="bt-side" aria-label="Workspace">
+    <p class="bt-eyebrow">Platform workspace</p>
+    <nav>
+      <a href="{% url 'home' %}" class="is-active" aria-current="page">Overview</a>
+      <a href="{% url 'admin_users' %}">Users</a>
+      <a href="{% url 'admin:accounts_user_changelist' %}">Sellers <span class="bt-count">{{ waiting_growers|stringformat:"02d" }}</span></a>
+      <a href="{% url 'admin:catalog_plantspecies_changelist' %}">Plant catalogue</a>
+      <a href="{% url 'admin:catalog_region_changelist' %}">Regions</a>
+      <a href="{% url 'admin:orders_order_changelist' %}">Orders</a>
+      <a href="{% url 'admin_reports' %}">Reports</a>
+      <a href="{% url 'admin_settings' %}">Settings</a>
+    </nav>
+    <p class="bt-health"><span class="bt-dot"></span> All systems healthy</p>
+    <div class="bt-side__help"><p>A healthy ecosystem starts with good care.</p><a class="bt-arrow-link" href="{% url 'admin:index' %}">Admin help centre ↗</a></div>
+  </aside>
+
+  <div class="bt-admin__main">
+    <div class="bt-dash__heading">
+      <div><h1 class="bt-section-title">A growing ecosystem.</h1><p class="bt-muted">Your community, catalogue and marketplace at a glance.</p></div>
+      <span class="bt-pill bt-pill--outline">This month · {{ month_label }}</span>
+    </div>
+
+    <section class="bt-tiles" aria-label="Key numbers">
+      <article class="bt-tile"><h2>Marketplace sales</h2><p class="bt-tile__value">{{ sales }}</p><p class="bt-tile__note">{{ month_label }}</p></article>
+      <article class="bt-tile"><h2>Orders placed</h2><p class="bt-tile__value">{{ orders_placed }}</p><p class="bt-tile__note">This month</p></article>
+      <article class="bt-tile"><h2>Active growers</h2><p class="bt-tile__value">{{ active_growers }}</p><p class="bt-tile__note">{{ waiting_growers }} awaiting approval</p></article>
+      <article class="bt-tile"><h2>Plant-loving homes</h2><p class="bt-tile__value">{{ homes|stringformat:"d" }}</p><p class="bt-tile__note">{{ new_homes }} new this month</p></article>
+    </section>
+
+    <div class="bt-split bt-split--even">
+      <section class="bt-panel">
+        <h3>Good growth, week by week.</h3>
+        <p class="bt-muted">Order value · {{ month_label }}</p>
+        {% if orders_placed %}
+        <ul class="bt-chart">
+          {% for w in weeks %}
+          <li><span class="bt-chart__bar" style="height: {{ w.pct }}%" title="{{ w.text }}"></span><strong>{{ w.text }}</strong><span>{{ w.label }}</span></li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        {# Four flat stubs read as a broken chart; say what the empty weeks mean. #}
+        <p class="bt-chart-empty">No orders yet in {{ month_label }}. Each week's order value appears here once sales start.</p>
+        {% endif %}
+      </section>
+      <section class="bt-panel">
+        <h3>A little attention needed.</h3>
+        <p class="bt-muted">Keep our marketplace in good shape.</p>
+        <ul class="bt-attention">
+          {% for a in attention %}
+          <li><span class="bt-attention__n">{{ a.n|stringformat:"02d" }}</span><span>{{ a.label }}</span><a class="bt-arrow-link" href="{% url 'admin:index' %}">{{ a.link }} ↗</a></li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+
+    <div class="bt-split bt-split--even">
+      <section class="bt-panel bt-panel--flush">
+        <header class="bt-panel__head"><h3>New growers, new possibilities.</h3><a class="bt-arrow-link" href="{% url 'admin:accounts_user_changelist' %}">View all ↗</a></header>
+        {% if new_growers %}
+        <div class="bt-table-wrap">
+          <table class="bt-orders">
+            <thead><tr><th scope="col">Nursery</th><th scope="col">Plants</th><th scope="col">Joined</th><th scope="col">Action</th></tr></thead>
+            <tbody>
+              {% for g in new_growers %}
+              <tr><td>{{ g.full_name }}</td><td>{{ g.plants }}</td><td>{{ g.date_joined|date:"j M Y" }}</td><td><a class="bt-arrow-link" href="{% url 'admin:accounts_user_change' g.pk %}">Review ↗</a></td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}<p class="bt-empty">No sellers have joined yet.</p>{% endif %}
+      </section>
+      <section class="bt-panel">
+        <h3>What’s taking root</h3>
+        <p class="bt-muted">{{ listing_count|stringformat:"d" }} active listing{{ listing_count|pluralize }} · {{ region_total }} region{{ region_total|pluralize }}</p>
+        <ul class="bt-regions">
+          {% for r in regions %}<li><span>{{ r.name }}</span><span class="bt-bar"><i style="width: {{ r.pct }}%"></i></span><strong>{{ r.n }}</strong></li>{% endfor %}
+        </ul>
+      </section>
+    </div>
+
+    <section class="bt-panel bt-panel--dark bt-community">
+      <h3>From around the community</h3>
+      <ul>
+        <li><span class="bt-eyebrow bt-eyebrow--light">New plants</span><strong>{{ new_plants_today }} new plant{{ new_plants_today|pluralize }} added today</strong></li>
+        <li><span class="bt-eyebrow bt-eyebrow--light">Orders</span><strong>{{ delivered }} order{{ delivered|pluralize }} delivered</strong></li>
+        <li><span class="bt-eyebrow bt-eyebrow--light">Community</span><strong>{{ new_homes_today }} new home{{ new_homes_today|pluralize }} joined today</strong></li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<footer class="bt-footline"><div class="bt-container"><span>Basera. Grow local.</span><a href="{% url 'admin:index' %}">Admin site ↗</a></div></footer>
+{% endblock %}

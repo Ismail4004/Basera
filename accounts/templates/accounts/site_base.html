@@ -1,0 +1,135 @@
+{% load static %}<!doctype html>
+{% comment %}
+  Page shell for the signed-in / browsing part of the site (botanical design from
+  the Figma wireframes): header, optional illustrated page band, content, footer.
+  The login, sign-up and password pages keep using accounts/base.html.
+{% endcomment %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Basera{% endblock %} · Basera</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,800&family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,700;1,9..40,500&display=swap" rel="stylesheet">
+  <link href="{% static 'accounts/css/botanical.css' %}" rel="stylesheet">
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {% block header %}
+  <header class="bt-header{% block header_class %}{% endblock %}">
+    <div class="bt-header__inner">
+      <a class="bt-brand" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'login' %}{% endif %}">
+        <span class="bt-brand__name">basera</span>
+        <span class="bt-brand__tagline">Native plants. For your patch.</span>
+      </a>
+
+      <button class="bt-menu-toggle" type="button" aria-controls="bt-nav" aria-expanded="false" aria-label="Menu">
+        <svg viewBox="0 0 26 26" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h18M4 13h18M4 18h18"/></svg>
+      </button>
+
+      <div class="bt-header__panel" id="bt-nav">
+        <nav class="bt-nav" aria-label="Main">
+          <a href="{% url 'catalogue' %}"{% if request.resolver_match.url_name == 'catalogue' or request.resolver_match.url_name == 'species_detail' %} class="is-active" aria-current="page"{% endif %}>Catalogue</a>
+          {% if user.is_authenticated and user.is_customer %}
+            <a href="{% url 'grow_profiles' %}"{% if request.resolver_match.url_name == 'grow_profiles' %} class="is-active"{% endif %}>My Grow Profiles</a>
+            <a href="{% url 'match_results' %}"{% if request.resolver_match.url_name == 'match_results' %} class="is-active"{% endif %}>Match Results</a>
+            <a href="{% url 'about' %}"{% if request.resolver_match.url_name == 'about' %} class="is-active"{% endif %}>About</a>
+          {% elif user.is_authenticated and user.is_seller %}
+            <a href="{% url 'seller_listings' %}"{% if request.resolver_match.url_name == 'seller_listings' %} class="is-active"{% endif %}>My Listings</a>
+          {% elif user.is_authenticated %}
+            <a href="{% url 'admin:index' %}">Admin site</a>
+          {% else %}
+            <a href="{% url 'about' %}"{% if request.resolver_match.url_name == 'about' %} class="is-active"{% endif %}>About</a>
+          {% endif %}
+        </nav>
+
+        <div class="bt-header__tools">
+          {% comment %}
+            The catalogue page has its own live search box in the toolbar, so the
+            header copy would only duplicate it there.
+          {% endcomment %}
+          {% if request.resolver_match.url_name != 'catalogue' %}
+          <form class="bt-search" action="{% url 'catalogue' %}" method="get" role="search">
+            <input type="search" name="q" placeholder="Search plants…" aria-label="Search plants" value="{{ term|default:'' }}">
+            <button type="submit" aria-label="Search">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </button>
+          </form>
+          {% endif %}
+
+          {% if user.is_authenticated %}
+            <a class="bt-icon-link" href="{% url 'home' %}" aria-label="Your account: {{ user.get_short_name }}" title="{{ user.full_name }}">
+              <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.4-6 8-6s6.8 2 8 6"/></svg>
+            </a>
+            {% if user.is_customer %}
+              {% include "accounts/includes/cart_link.html" %}
+            {% endif %}
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button class="bt-link-button" type="submit">Log out</button>
+            </form>
+          {% else %}
+            <a class="bt-link-button" href="{% url 'login' %}">Log in</a>
+            <a class="bt-btn bt-btn--small" href="{% url 'signup' %}">Sign up</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </header>
+  {% endblock header %}
+
+  {% block band %}{% if band_title %}{% include "accounts/includes/page_band.html" %}{% endif %}{% endblock %}
+
+  <main class="bt-main{% block main_class %}{% endblock %}">
+    {% if messages %}
+      <div class="bt-container">
+        {% for message in messages %}
+          <p class="bt-notice{% if message.level_tag == 'error' %} bt-notice--error{% endif %}" role="status">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="bt-footer">
+    <div class="bt-footer__inner">
+      <div class="bt-footer__top">
+        <div class="bt-footer__brand">
+          <span class="bt-brand__name">basera</span>
+          <span class="bt-brand__tagline">Native plants. For your patch.</span>
+        </div>
+        <div class="bt-footer__col">
+          <h2>Shop</h2>
+          <a href="{% url 'catalogue' %}">Catalogue</a>
+          <a href="{% url 'grow_profiles' %}">Grow Profiles</a>
+          <a href="{% url 'match_results' %}">Match Results</a>
+        </div>
+        <div class="bt-footer__col">
+          <h2>About</h2>
+          <a href="{% url 'about' %}">Our Mission</a>
+          <a href="{% url 'catalogue' %}">Native Plants</a>
+          <a href="{% url 'help' %}">FAQ</a>
+        </div>
+        <div class="bt-footer__col">
+          <h2>Support</h2>
+          <a href="{% url 'help' %}">Help</a>
+          <a href="{% url 'help' %}">Contact</a>
+        </div>
+      </div>
+      <div class="bt-footer__bottom">
+        <span>© 2026 Basera. All rights reserved.</span>
+        <span class="bt-footer__legal"><a href="{% url 'privacy' %}">Privacy Policy</a><a href="{% url 'terms' %}">Terms of Service</a></span>
+      </div>
+    </div>
+  </footer>
+  {% endblock footer %}
+
+  <div id="bt-toasts" class="bt-toasts" aria-live="polite"></div>
+
+  <script src="{% static 'accounts/js/botanical.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

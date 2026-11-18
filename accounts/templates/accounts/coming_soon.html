@@ -1,0 +1,14 @@
+{% extends "accounts/site_base.html" %}
+
+{% block title %}{{ page_name }}{% endblock %}
+
+{% block content %}
+<div class="bt-container bt-placeholder">
+  <p class="bt-eyebrow">Coming soon</p>
+  <h2 class="bt-display">{{ page_name }}</h2>
+  <p class="bt-lede">This page is built in a later story.</p>
+  <div class="bt-actions">
+    <a class="bt-btn" href="{% url 'catalogue' %}">Browse the catalogue</a>
+  </div>
+</div>
+{% endblock %}

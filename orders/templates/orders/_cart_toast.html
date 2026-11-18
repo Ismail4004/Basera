@@ -1,0 +1,6 @@
+{% comment %}
+  Fragment answer for a cart change made from anywhere but the cart page: only
+  the header link is swapped (badge + label). The message itself travels in the
+  HX-Trigger header and becomes a toast in the browser.
+{% endcomment %}
+{% include "accounts/includes/cart_link.html" with oob=1 %}

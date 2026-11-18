@@ -1,0 +1,15 @@
+# Local secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local databases and uploads
+db.sqlite3
+media/
+.claude/
+
+# Collected static files (built on deploy)
+staticfiles/

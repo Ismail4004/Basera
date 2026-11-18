@@ -1,0 +1,42 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Basera{% endblock %} · Basera</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,800&family=DM+Sans:opsz,wght@9..40,500;9..40,700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="{% static 'accounts/css/basera.css' %}" rel="stylesheet">
+</head>
+<body>
+  <div class="basera-backdrop" aria-hidden="true"></div>
+
+  <div class="basera-page">
+    <header class="basera-header basera-shell">
+      <a class="basera-brand" href="{% url 'login' %}">
+        <span class="basera-brand__name basera-display">basera</span>
+        <span class="basera-brand__tagline">Native plants. For your patch.</span>
+      </a>
+    </header>
+
+    <main class="basera-main basera-shell">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="basera-footer basera-shell">
+      <span>Basera. Grow local.</span>
+      <ul class="basera-footer__links">
+        <li><a href="{% url 'privacy' %}">Privacy</a></li>
+        <li><a href="{% url 'terms' %}">Terms</a></li>
+        <li><a href="{% url 'help' %}">Help</a></li>
+      </ul>
+    </footer>
+  </div>
+
+  <script src="{% static 'accounts/js/basera.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,23 @@
+{% extends "accounts/site_base.html" %}
+
+{% block title %}Catalogue{% endblock %}
+
+{% block content %}
+<div class="bt-container">
+  <form class="bt-toolbar" action="{% url 'catalogue' %}" method="get" role="search">
+    <input class="bt-input bt-input--pill" type="search" name="q" value="{{ term }}"
+           placeholder="Search by common or scientific name" aria-label="Search the catalogue" autocomplete="off"
+           hx-get="{% url 'catalogue' %}" hx-trigger="keyup changed delay:300ms, search"
+           hx-target="#catalogue-results" hx-push-url="true" hx-swap="innerHTML">
+    <button class="bt-btn" type="submit">Search</button>
+  </form>
+
+  <p class="bt-notice bt-notice--info">
+    Plants marked “Invasive” are listed for awareness only and can’t be bought. Out-of-stock plants can’t be added to a cart.
+  </p>
+
+  <div id="catalogue-results">
+    {% include "catalog/_results.html" %}
+  </div>
+</div>
+{% endblock %}

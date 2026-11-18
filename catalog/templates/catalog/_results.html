@@ -1,0 +1,47 @@
+{# The results block: swapped in by HTMX while typing or paging, and included in the full page. #}
+<p class="bt-count" aria-live="polite">
+  {% if page.paginator.count %}
+    Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}
+    {% if term %}result{{ page.paginator.count|pluralize }} for “{{ term }}”{% else %}native plants{% endif %}
+  {% elif term %}
+    No plants match “{{ term }}”.
+  {% else %}
+    The catalogue is empty for now.
+  {% endif %}
+</p>
+
+{% if page.object_list %}
+  <ul class="bt-grid" role="list">
+    {% for species in page.object_list %}
+      <li>{% include "catalog/_species_card.html" %}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{% if term and not page.object_list %}
+  <p class="bt-hint">Try a different name, or <a href="{% url 'catalogue' %}"
+     hx-get="{% url 'catalogue' %}" hx-target="#catalogue-results" hx-push-url="true">clear the search</a>.</p>
+{% elif term %}
+  <p class="bt-hint">Not what you were looking for? <a href="{% url 'catalogue' %}">Clear search</a></p>
+{% endif %}
+
+{% if page.paginator.num_pages > 1 %}
+  <nav class="bt-pagination" aria-label="Catalogue pages">
+    {% if page.has_previous %}
+      <a href="?{% if term %}q={{ term|urlencode }}&amp;{% endif %}page={{ page.previous_page_number }}" aria-label="Previous page"
+         hx-get="{% url 'catalogue' %}?{% if term %}q={{ term|urlencode }}&amp;{% endif %}page={{ page.previous_page_number }}"
+         hx-target="#catalogue-results" hx-push-url="true">‹</a>
+    {% endif %}
+    {% for n in page.paginator.page_range %}
+      <a href="?{% if term %}q={{ term|urlencode }}&amp;{% endif %}page={{ n }}"
+         {% if n == page.number %}class="is-current" aria-current="page"{% endif %}
+         hx-get="{% url 'catalogue' %}?{% if term %}q={{ term|urlencode }}&amp;{% endif %}page={{ n }}"
+         hx-target="#catalogue-results" hx-push-url="true">{{ n }}</a>
+    {% endfor %}
+    {% if page.has_next %}
+      <a href="?{% if term %}q={{ term|urlencode }}&amp;{% endif %}page={{ page.next_page_number }}" aria-label="Next page"
+         hx-get="{% url 'catalogue' %}?{% if term %}q={{ term|urlencode }}&amp;{% endif %}page={{ page.next_page_number }}"
+         hx-target="#catalogue-results" hx-push-url="true">›</a>
+    {% endif %}
+  </nav>
+{% endif %}

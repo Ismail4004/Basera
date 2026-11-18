@@ -1,0 +1,104 @@
+{% extends "accounts/site_base.html" %}
+{% load static %}
+
+{% block title %}{{ species.common_name }}{% endblock %}
+
+{% block content %}
+<div class="bt-container">
+
+  {% if species.is_invasive %}
+    <div class="bt-notice bt-notice--danger bt-notice--banner" role="alert">
+      <strong>Invasive species — not sold on Basera</strong>
+      <span>This plant spreads aggressively and crowds out native species. Basera lists it for awareness only: it is never recommended in matches and cannot be added to a cart.</span>
+    </div>
+  {% endif %}
+
+  <section class="bt-detail">
+    <div class="bt-detail__photo">
+      {% if species.image %}<img src="{{ species.image.url }}" alt="{{ species.common_name }}">{% else %}
+        <img src="{% static 'catalog/img/placeholder.svg' %}" alt="">{% endif %}
+      {% if species.is_invasive %}<span class="bt-tag bt-tag--red">Invasive — not sold</span>
+      {% else %}<span class="bt-tag bt-tag--dark">Native</span>{% endif %}
+    </div>
+
+    <div class="bt-detail__info">
+      <h2 class="bt-detail__name">{{ species.common_name }}</h2>
+      <p class="bt-detail__sci">{{ species.scientific_name }}</p>
+      <p class="bt-detail__price{% if species.is_invasive %} is-muted{% endif %}">Rs {{ species.price|floatformat:"0g" }}</p>
+
+      <p class="bt-stock {% if species.is_invasive or not in_stock %}bt-stock--no{% else %}bt-stock--yes{% endif %}">
+        <span class="bt-dot" aria-hidden="true"></span>
+        {% if species.is_invasive %}Not available for purchase
+        {% elif in_stock %}In stock · {{ species.stock_qty }} available
+        {% else %}Out of stock{% endif %}
+      </p>
+
+      {% if species.description %}<p class="bt-detail__desc">{{ species.description }}</p>{% endif %}
+
+      <ul class="bt-chips" aria-label="Growing needs">
+        <li class="bt-chip">☀ {{ species.light_need }}</li>
+        <li class="bt-chip">💧 {{ species.water_need }} water</li>
+        <li class="bt-chip">{{ species.suitable_soils }} soil</li>
+        <li class="bt-chip">{{ species.get_setting_display }}</li>
+      </ul>
+
+      <div class="bt-detail__actions">
+        {% if species.is_invasive %}
+          <span class="bt-btn bt-btn--disabled" aria-disabled="true">Can’t be added to a cart</span>
+          <a class="bt-btn" href="#related">See native alternatives</a>
+        {% elif not in_stock %}
+          <span class="bt-btn bt-btn--disabled" aria-disabled="true">Out of stock</span>
+        {% elif viewer == "guest" %}
+          <a class="bt-btn" href="{% url 'login' %}?next={% url 'species_detail' species.pk %}">Log in to add to cart</a>
+        {% elif viewer == "customer" %}
+          {# US-19: a POST so adding to the cart is never a side effect of a link. #}
+          <form class="bt-btn-form" method="post" action="{% url 'cart_add' species.pk %}"
+                hx-post="{% url 'cart_add' species.pk %}" hx-swap="none" hx-disabled-elt="find button">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="bt-btn" type="submit">Add to cart</button>
+          </form>
+          <a class="bt-btn bt-btn--outline" href="{% url 'cart' %}">View cart</a>
+        {% endif %}
+      </div>
+
+      <dl class="bt-facts">
+        <div><dt>Native to</dt><dd>{% for region in regions %}{{ region.name }}{% if not forloop.last %}, {% endif %}{% empty %}Not listed{% endfor %}</dd></div>
+        <div><dt>Seller</dt><dd>{{ species.seller.full_name }}</dd></div>
+        {% if species.ecological_role %}<div><dt>Ecological benefit</dt><dd>{{ species.ecological_role }}</dd></div>{% endif %}
+      </dl>
+    </div>
+  </section>
+
+  <section class="bt-tabs" data-tabs>
+    <div class="bt-tabs__list" role="tablist">
+      <button type="button" role="tab" id="tab-desc" aria-controls="panel-desc" aria-selected="true">Description</button>
+      <button type="button" role="tab" id="tab-needs" aria-controls="panel-needs" aria-selected="false" tabindex="-1">Growing needs</button>
+      <button type="button" role="tab" id="tab-eco" aria-controls="panel-eco" aria-selected="false" tabindex="-1">Ecological benefit</button>
+    </div>
+    <div class="bt-tabs__panel" role="tabpanel" id="panel-desc" aria-labelledby="tab-desc">
+      <p>{{ species.description|default:"No description yet." }}</p>
+    </div>
+    <div class="bt-tabs__panel" role="tabpanel" id="panel-needs" aria-labelledby="tab-needs" hidden>
+      <table class="bt-table">
+        <tr><th scope="row">Sunlight</th><td>{{ species.light_need }}</td></tr>
+        <tr><th scope="row">Water</th><td>{{ species.water_need }}</td></tr>
+        <tr><th scope="row">Soil</th><td>{{ species.suitable_soils }}</td></tr>
+        <tr><th scope="row">Setting</th><td>{{ species.get_setting_display }}</td></tr>
+      </table>
+    </div>
+    <div class="bt-tabs__panel" role="tabpanel" id="panel-eco" aria-labelledby="tab-eco" hidden>
+      <p>{{ species.ecological_role|default:"No ecological notes yet." }}</p>
+    </div>
+  </section>
+
+  {% if related %}
+    <section class="bt-related" id="related">
+      <h2 class="bt-section-title">{% if species.is_invasive %}Native alternatives{% else %}You may also like{% endif %}</h2>
+      <ul class="bt-grid" role="list">
+        {% for species in related %}<li>{% include "catalog/_species_card.html" %}</li>{% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "accounts/site_base.html" %}
+{% load static %}
+
+{% block title %}Seller home{% endblock %}
+
+{% comment %}
+  Seller landing page (Figma: "Seller landing · Botanical"). Opens after log in or sign up.
+  Context from accounts.landing.seller_context.
+{% endcomment %}
+
+{% block header %}{% include "accounts/includes/role_header.html" with role_label="Seller" %}{% endblock %}
+{% block band %}{% endblock %}
+
+{% block content %}
+<div class="bt-container bt-dash">
+  <section class="bt-welcome">
+    <div class="bt-welcome__copy">
+      <span class="bt-pill">Your store is live</span>
+      <h1>Good morning, {{ user.get_short_name }}.</h1>
+      <p class="bt-welcome__tag">More plants. More happy patches.</p>
+      <p class="bt-welcome__intro">Here’s what’s growing in your nursery today.</p>
+      <div class="bt-actions">
+        <a class="bt-btn" href="{% url 'seller_listings' %}">+ Add a plant</a>
+        <a class="bt-arrow-link" href="{% url 'catalogue' %}">Visit storefront ↗</a>
+      </div>
+    </div>
+    <div class="bt-welcome__art" aria-hidden="true"></div>
+  </section>
+
+  <section class="bt-tiles" aria-label="Key numbers">
+    <article class="bt-tile"><h2>Revenue this month</h2><p class="bt-tile__value">{{ revenue }}</p><p class="bt-tile__note">{{ month_label }}</p></article>
+    <article class="bt-tile"><h2>Orders to fulfil</h2><p class="bt-tile__value">{{ to_fulfil|stringformat:"02d" }}</p><p class="bt-tile__note">{% if to_fulfil %}Waiting for you{% else %}All caught up{% endif %}</p></article>
+    <article class="bt-tile"><h2>Active plants</h2><p class="bt-tile__value">{{ active_count }}</p><p class="bt-tile__note">Across {{ region_count }} region{{ region_count|pluralize }}</p></article>
+    <article class="bt-tile"><h2>Customers served</h2><p class="bt-tile__value">{{ customers_served }}</p><p class="bt-tile__note">Happy homes so far</p></article>
+  </section>
+
+  <div class="bt-dash__heading">
+    <div>
+      <h2 class="bt-section-title">A little attention. A lot of growth.</h2>
+      <p class="bt-muted">Start with today’s orders, then give your stock a little care.</p>
+    </div>
+    <span class="bt-pill bt-pill--outline">{{ month_label }}</span>
+  </div>
+
+  <div class="bt-split">
+    <section class="bt-panel bt-panel--flush">
+      <header class="bt-panel__head"><h3>Orders that need you</h3><a class="bt-arrow-link" href="{% url 'seller_orders' %}">View all ↗</a></header>
+      {% if recent_orders %}
+      <div class="bt-table-wrap">
+        <table class="bt-orders">
+          <thead><tr><th scope="col">Order / Customer</th><th scope="col">Plants</th><th scope="col">Total</th><th scope="col">Status</th></tr></thead>
+          <tbody>
+            {% for o in recent_orders %}
+            <tr><td>{{ o.ref }} · {{ o.customer }}</td><td>{{ o.plants }}</td><td>{{ o.total }}</td><td><span class="bt-status bt-status--{{ o.tone }}">{{ o.status }}</span></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="bt-empty">No orders yet. When customers buy your plants, they appear here.</p>
+      {% endif %}
+    </section>
+
+    <section class="bt-panel">
+      <h3>A little stock check</h3>
+      <p class="bt-muted">Top up these community favourites.</p>
+      <ul class="bt-stock-list">
+        {% for p in low_stock %}
+        <li>
+          {% if p.image %}<img src="{{ p.image.url }}" alt="" width="52" height="52">{% else %}<img src="{% static 'catalog/img/placeholder.svg' %}" alt="" width="52" height="52">{% endif %}
+          <div><strong>{{ p.common_name }}</strong><span class="{% if p.stock_qty == 0 %}bt-text-coral{% endif %}">{% if p.stock_qty == 0 %}Out of stock{% else %}{{ p.stock_qty }} left{% endif %}</span></div>
+          <a class="bt-arrow-link" href="{% url 'seller_listings' %}">Update ↗</a>
+        </li>
+        {% empty %}
+        <li class="bt-empty">{% if active_count %}Every plant is well stocked.{% else %}You haven’t listed any plants yet.{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+
+  <div class="bt-split">
+    <section class="bt-panel">
+      <h3>Your plants, at a glance</h3>
+      <p class="bt-muted">{{ active_count }} active plant{{ active_count|pluralize }}, ready for their next home.</p>
+      <dl class="bt-statrow">
+        {% for s in plant_stats %}
+        <div><dt>{{ s.label }}</dt><dd>{{ s.n }}</dd><span class="bt-bar"><i style="width: {{ s.pct }}%"></i></span></div>
+        {% endfor %}
+      </dl>
+    </section>
+    <section class="bt-panel bt-panel--dark">
+      <p class="bt-eyebrow bt-eyebrow--light">A note for your nursery</p>
+      <h3>Help new roots settle in.</h3>
+      <p>Add a care note to every order. Little details grow lasting trust.</p>
+      <a class="bt-arrow-link bt-arrow-link--light" href="{% url 'seller_guide' %}">Read the packing guide ↗</a>
+    </section>
+  </div>
+
+  <section class="bt-helpbar">
+    <div><h3>A little help to grow.</h3><p>Care guides, selling tips and a real person to help.</p></div>
+    <div class="bt-helpbar__links"><a class="bt-arrow-link" href="{% url 'catalogue' %}">Manage storefront ↗</a><a class="bt-btn bt-btn--outline" href="{% url 'help' %}">Seller support ↗</a></div>
+  </section>
+</div>
+{% endblock %}
+
+{% block footer %}
+<footer class="bt-footline"><div class="bt-container"><span>Basera. Grow local.</span><a href="{% url 'seller_listings' %}">Store settings ↗</a></div></footer>
+{% endblock %}

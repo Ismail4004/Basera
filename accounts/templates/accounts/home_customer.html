@@ -1,0 +1,75 @@
+{% extends "accounts/site_base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% comment %}
+  Customer landing page (Figma: "Home · Photo hero"). Opens after log in or sign up.
+  Context from accounts.landing.customer_context: featured (five plants).
+{% endcomment %}
+
+{% block header_class %} bt-header--over{% endblock %}
+{% block main_class %} bt-main--flush{% endblock %}
+
+{% block band %}
+<section class="bt-hero">
+  <div class="bt-hero__inner">
+    <p class="bt-hero__eyebrow">Plants for your patch</p>
+    <h1 class="bt-hero__title">Grow closer<br>to home.</h1>
+    <p class="bt-hero__lede">Tell us about your space and we'll match you with native plants that thrive there, support pollinators and need less care.</p>
+    <div class="bt-actions">
+      <a class="bt-btn bt-btn--cream" href="{% url 'catalogue' %}">Browse Catalogue <span aria-hidden="true">→</span></a>
+      <a class="bt-btn bt-btn--ghost" href="{% url 'grow_profiles' %}">Find Plants for Your Space</a>
+    </div>
+    <ul class="bt-hero__badges">
+      <li>Native &amp; Local</li>
+      <li>Supports Pollinators</li>
+      <li>Low Maintenance</li>
+      <li>No Invasive Species</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="bt-container bt-section">
+  <div class="bt-section__head">
+    <h2 class="bt-section-title">Featured Native Plants</h2>
+    <a class="bt-arrow-link" href="{% url 'catalogue' %}">Shop All Plants →</a>
+  </div>
+  {% if featured %}
+    <ul class="bt-grid bt-grid--five">
+      {% for species in featured %}<li>{% include "catalog/_species_card.html" %}</li>{% endfor %}
+    </ul>
+  {% else %}
+    <p class="bt-hint">New plants are on their way. <a href="{% url 'catalogue' %}">Browse the catalogue</a>.</p>
+  {% endif %}
+</section>
+
+<section class="bt-works">
+  <div class="bt-container">
+    <p class="bt-eyebrow bt-eyebrow--light">How Basera works</p>
+    <h2 class="bt-works__title">From your space to the right<br>plant in 3 steps.</h2>
+    <ol class="bt-steps">
+      <li><span class="bt-steps__n">1</span><h3>Describe your space</h3><p>Sunlight, soil, water and purpose.</p></li>
+      <li><span class="bt-steps__n">2</span><h3>Get your ranked matches</h3><p>Native plants scored for your space, with clear reasons.</p></li>
+      <li><span class="bt-steps__n">3</span><h3>Grow with confidence</h3><p>Order plants that suit you, with invasive species flagged.</p></li>
+    </ol>
+    <a class="bt-btn bt-btn--cream" href="{% url 'grow_profiles' %}">Create a Grow Profile <span aria-hidden="true">→</span></a>
+  </div>
+</section>
+
+<section class="bt-container bt-section">
+  <p class="bt-eyebrow">Why native plants</p>
+  <h2 class="bt-section-title">A little more local.<br>A lot more life.</h2>
+  <p class="bt-lede">Choose plants that belong here, and help your patch thrive.</p>
+  <a class="bt-arrow-link" href="{% url 'about' %}">Learn More →</a>
+  <ul class="bt-why">
+    <li><span class="bt-why__icon" aria-hidden="true">💧</span>Use less<br>water</li>
+    <li><span class="bt-why__icon" aria-hidden="true">🐝</span>Support pollinators<br>and wildlife</li>
+    <li><span class="bt-why__icon" aria-hidden="true">🌱</span>Suit local soil<br>and climate</li>
+    <li><span class="bt-why__icon" aria-hidden="true">🌿</span>Need less<br>care</li>
+    <li><span class="bt-why__icon" aria-hidden="true">🛡️</span>Protect local ecosystems<br>from invasive species</li>
+  </ul>
+</section>
+{% endblock %}

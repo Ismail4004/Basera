@@ -1,0 +1,12 @@
+{# Illustrated page header: breadcrumb, title and subtitle (see accounts/ui.py). #}
+<section class="bt-band">
+  <div class="bt-band__inner">
+    <nav class="bt-crumbs" aria-label="Breadcrumb">
+      {% for label, url in crumbs %}
+        {% if url %}<a href="{{ url }}">{{ label }}</a><span aria-hidden="true">›</span>{% else %}<span aria-current="page">{{ label }}</span>{% endif %}
+      {% endfor %}
+    </nav>
+    <h1 class="bt-band__title">{{ band_title }}</h1>
+    {% if band_sub %}<p class="bt-band__sub">{{ band_sub }}</p>{% endif %}
+  </div>
+</section>

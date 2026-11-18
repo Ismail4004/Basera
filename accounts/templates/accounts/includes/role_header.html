@@ -1,0 +1,32 @@
+{# Header for the seller and admin workspaces. Needs: role_label. Blocks "nav" and "tools" are filled by the includer via `with`. #}
+<header class="bt-header bt-header--workspace">
+  <div class="bt-header__inner">
+    <a class="bt-brand" href="{% url 'home' %}"><span class="bt-brand__name">basera</span></a>
+    <span class="bt-role-badge">{{ role_label }}</span>
+    <button class="bt-menu-toggle" type="button" aria-controls="bt-nav" aria-expanded="false" aria-label="Menu">
+      <svg viewBox="0 0 26 26" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h18M4 13h18M4 18h18"/></svg>
+    </button>
+    <div class="bt-header__panel" id="bt-nav">
+      {% if role_label == "Seller" %}
+        <nav class="bt-nav" aria-label="Seller">
+          <a href="{% url 'home' %}" class="is-active" aria-current="page">Overview</a>
+          <a href="{% url 'seller_orders' %}">Orders</a>
+          <a href="{% url 'seller_listings' %}">My plants</a>
+          <a href="{% url 'catalogue' %}">Categories</a>
+          <a href="{% url 'seller_earnings' %}">Earnings</a>
+        </nav>
+      {% else %}
+        <p class="bt-header__slogan">Keeping our community growing.</p>
+      {% endif %}
+      <div class="bt-header__tools">
+        {% if role_label != "Seller" %}<a class="bt-nav-link" href="{% url 'catalogue' %}">View website ↗</a>{% endif %}
+        <a class="bt-nav-link" href="{% url 'help' %}">Help</a>
+        <form method="post" action="{% url 'logout' %}" class="bt-account-menu">
+          {% csrf_token %}
+          <span class="bt-account-menu__name">{% if role_label == "Seller" %}{{ user.full_name }}{% else %}{{ user.full_name|default:"Basera team" }}{% endif %}</span>
+          <button class="bt-link-button" type="submit">Log out</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
