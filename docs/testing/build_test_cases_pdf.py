@@ -293,6 +293,21 @@ NEW_SECT += [
     ]),
 ]
 
+PF = "basera_site.test_performance."
+NEW_SECT += [
+    ("A19. Speed budgets (basera_site/test_performance.py)", [
+        ("PF-01", "Plant photos", "Each is at most 720 px and 200 KB (all 35 checked)", PF + "ImageBudgetTests.test_pf01_every_plant_photo_is_at_most_720px_and_200kb"),
+        ("PF-02", "All plant photos together", "Under 3 MB", PF + "ImageBudgetTests.test_pf02_all_plant_photos_together_stay_under_3mb"),
+        ("PF-03", "Home page hero picture", "At most 1920 px wide and 250 KB", PF + "ImageBudgetTests.test_pf03_the_home_page_hero_is_at_most_1920px_wide_and_250kb"),
+        ("PF-04", "Login page background", "A JPEG under 150 KB; the 1 MB PNG no longer ships", PF + "ImageBudgetTests.test_pf04_the_login_background_is_a_jpeg_under_150kb"),
+        ("PF-05", "Every site image", "None over 400 KB", PF + "ImageBudgetTests.test_pf05_no_image_in_the_static_folder_is_over_400kb"),
+        ("PF-06", "Scripts from other websites", "Never block the page from drawing (defer or async)", PF + "NonBlockingScriptTests.test_pf06_scripts_from_other_websites_never_block_the_page"),
+        ("PF-07", "Static files in production", "Hashed names (cached for a year) that never error if missing", PF + "CachingTests.test_pf07_production_uses_hashed_static_file_names_that_never_error_when_missing"),
+        ("PF-08", "Seeded plant photos in production", "Served with a week of caching by WhiteNoise", PF + "CachingTests.test_pf08_seeded_photos_are_served_with_a_week_of_caching"),
+        ("PF-09", "Server setup", "Two workers with four threads each, so several requests run at once", PF + "CachingTests.test_pf09_the_server_handles_several_requests_at_once"),
+    ]),
+]
+
 # --------------------------------------------------------------------------------------
 # Manual cases: (ID, test case, expected result, result)
 # Result words: Pass | Carried over (files unchanged since Shehroze's run) | Not re-run | Open
@@ -341,6 +356,8 @@ MANUAL_NEW = [
     ("M-39", "Production build on an empty database (build.sh, DEBUG off)", "141 static files collected, tables created, real admin created, 35 plants seeded, nursery account locked, no demo password printed", "Pass"),
     ("M-40", "Production server (gunicorn) with debug off", "Pages, CSS, JS, images and plant photos served; unknown page gives the plain 404 with no debug details; ../ media path refused; wrong Host answered 400; cookies Secure; HSTS sent behind an HTTPS proxy", "Pass"),
     ("M-41", "Real admin logs in under production settings (simulated HTTPS proxy)", "Wrong password refused; right password works with the email in capitals; session cookie Secure and HttpOnly; admin landing shows 35 listings; a form sent without token or origin is refused (403)", "Pass"),
+    ("M-43", "Speed rehearsal in production mode", "File names carry a hash and are cached for a year; the main stylesheet is 19 KB, 5 KB gzipped; plant photos cached for a week; all 12 catalogue photos (800 KB) load at once; catalogue page HTML in 0.02 s", "Pass"),
+    ("M-44", "Local media folder after a full test run", "Stays at 35 photos (before the fix every run added 35 duplicates; 4,330 had piled up and were removed)", "Pass"),
     ("M-42", "Branded 404 page in the browser", "Butterfly, large 404, \"Page not found\", Back to home and Browse catalogue; matches the Figma design", "Pass"),
 ]
 DEPLOY = [
@@ -364,6 +381,7 @@ FINDINGS = [
     "Not re-run: M-07 (scroll parallax: the test browser pane was hidden, which pauses animation) and M-17 (real Gmail: needs the team's app password). Both are unchanged code from Shehroze's passing run.",
     "M-01 to M-03 are carried over: the login, sign-up and forgot-password templates, styles and scripts are identical to Shehroze's branch (checked with git diff).",
     "Production setup was added after the first test run (sections A17 and A18, M-39 to M-42). The production build was rehearsed on this computer with a scratch database, debug off and gunicorn.",
+    "After the live site felt slow, images and caching were cut (A19, M-43): plant photos 5.1 to 2.6 MB, hero 349 to 189 KB, login background 1 MB PNG to 99 KB JPEG, hashed and compressed static files, cached photos, 2 workers with 4 threads. A hidden problem was also fixed: older tests had written 4,330 duplicate photos into the real media folder.",
     "Still open: DP-07 (the Gmail details must be entered on the Render dashboard), DP-11 (the live site must be created from the Render account) and DP-12 (smoke test of the live address).",
     "On a very tall window (over 1100 px) a cream strip shows under the customer hero. This is the deliberate height cap (M-36).",
 ]
@@ -432,7 +450,7 @@ def build(out):
             f"Deployment readiness: {count('Pass', DEPLOY)} passed, {count('Open', DEPLOY)} open.", sub),
         Paragraph(f"Run on the dev branch (commit {commit}, branch {branch}) on {date.today():%d %B %Y}. "
                   "Sections A1 to A6 and tests M-01 to M-19 are Shehroze's original cases, re-run on dev. "
-                  "Sections A7 to A18, M-20 to M-42 and section C were added after the catalogue, cart, grow profile, "
+                  "Sections A7 to A19, M-20 to M-44 and section C were added after the catalogue, cart, grow profile, "
                   "matching and landing page work was merged, and production setup was added.", note),
         Paragraph("Result words: Pass = performed and passed. Carried over = the files are unchanged since Shehroze's "
                   "passing run (checked with git diff). Not re-run = could not be repeated in this run (reason given). "

@@ -41,7 +41,7 @@ the `basera_app` role is allowed to create the test database).
 | Design tokens + all component styles | `accounts/static/accounts/css/basera.css` |
 | Show/Hide password script (reusable) | `accounts/static/accounts/js/password-toggle.js` |
 | Scroll parallax + button loading state | `accounts/static/accounts/js/basera.js` |
-| Background illustration | `accounts/static/accounts/img/background.png` |
+| Background illustration | `accounts/static/accounts/img/background.jpg` |
 | Tests | `accounts/tests.py`, `accounts/test_views.py`, `catalog/tests.py`, `orders/tests.py` |
 
 **Every new page should `{% extends "accounts/base.html" %}`** so it gets the
@@ -112,7 +112,7 @@ Don't add other effects: no rounded corners and no extra accent colours.
 | `--basera-divider` | `rgba(240,241,220,0.18)` | 1px divider lines |
 | Error (coral) | border `#f0a58c`, text `#ffc8b6` | Invalid fields and error messages |
 
-Background: `background.png` at **62% opacity** over `#23392d`, cover-fit,
+Background: `background.jpg` at **62% opacity** over `#23392d`, cover-fit,
 fixed (class `.basera-backdrop`, already in `base.html`).
 
 ### Form box (glass) — `.basera-panel`

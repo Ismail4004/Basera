@@ -12,7 +12,7 @@ services:
     runtime: python
     plan: free            # Free web services sleep after 15 minutes without visitors.
     buildCommand: ./build.sh
-    startCommand: gunicorn basera_site.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+    startCommand: gunicorn basera_site.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
