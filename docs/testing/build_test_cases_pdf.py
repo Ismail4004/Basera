@@ -356,9 +356,9 @@ MANUAL_NEW = [
     ("M-39", "Production build on an empty database (build.sh, DEBUG off)", "141 static files collected, tables created, real admin created, 35 plants seeded, nursery account locked, no demo password printed", "Pass"),
     ("M-40", "Production server (gunicorn) with debug off", "Pages, CSS, JS, images and plant photos served; unknown page gives the plain 404 with no debug details; ../ media path refused; wrong Host answered 400; cookies Secure; HSTS sent behind an HTTPS proxy", "Pass"),
     ("M-41", "Real admin logs in under production settings (simulated HTTPS proxy)", "Wrong password refused; right password works with the email in capitals; session cookie Secure and HttpOnly; admin landing shows 35 listings; a form sent without token or origin is refused (403)", "Pass"),
+    ("M-42", "Branded 404 page in the browser", "Butterfly, large 404, \"Page not found\", Back to home and Browse catalogue; matches the Figma design", "Pass"),
     ("M-43", "Speed rehearsal in production mode", "File names carry a hash and are cached for a year; the main stylesheet is 19 KB, 5 KB gzipped; plant photos cached for a week; all 12 catalogue photos (800 KB) load at once; catalogue page HTML in 0.02 s", "Pass"),
     ("M-44", "Local media folder after a full test run", "Stays at 35 photos (before the fix every run added 35 duplicates; 4,330 had piled up and were removed)", "Pass"),
-    ("M-42", "Branded 404 page in the browser", "Butterfly, large 404, \"Page not found\", Back to home and Browse catalogue; matches the Figma design", "Pass"),
 ]
 DEPLOY = [
     ("DP-01", "manage.py check", "No issues", "Pass"),
