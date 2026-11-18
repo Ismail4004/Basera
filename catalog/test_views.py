@@ -205,6 +205,13 @@ class LandingPageContentTests(TestCase):
         self.assertContains(response, "No orders yet")
         self.assertContains(response, "Amaltas")  # out of stock, so it is in the stock check
 
+    def test_a_new_seller_with_no_plants_is_not_told_everything_is_well_stocked(self):
+        new = User.objects.create_user("new@basera.test", "x", full_name="Nia Roots", role=User.Role.SELLER)
+        self.client.force_login(new)
+        page = self.client.get(reverse("home"))
+        self.assertContains(page, "You haven’t listed any plants yet.")
+        self.assertNotContains(page, "Every plant is well stocked.")
+
     def test_admin_home_shows_platform_numbers(self):
         self.client.force_login(User.objects.get(email="admin@basera.test"))
         response = self.client.get(reverse("home"))

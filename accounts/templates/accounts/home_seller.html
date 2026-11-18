@@ -72,7 +72,7 @@
           <a class="bt-arrow-link" href="{% url 'seller_listings' %}">Update ↗</a>
         </li>
         {% empty %}
-        <li class="bt-empty">Every plant is well stocked.</li>
+        <li class="bt-empty">{% if active_count %}Every plant is well stocked.{% else %}You haven’t listed any plants yet.{% endif %}</li>
         {% endfor %}
       </ul>
     </section>
