@@ -507,6 +507,9 @@ h1, h2, h3 {
   /* Grows with the screen so the photo is cropped mostly at the bottom and the
      subject keeps her headroom. */
   min-height: clamp(680px, 42vw, 880px);
+  /* ...and never shorter than the visible window, so no cream strip shows under
+     the photo on a tall screen (capped so a portrait monitor doesn't get a giant hero). */
+  min-height: min(1100px, max(clamp(680px, 42vw, 880px), 100svh));
   padding-top: 120px;
   display: flex; align-items: center;
   color: var(--bt-on-dark);
@@ -660,7 +663,7 @@ h1, h2, h3 {
   .bt-hero__title { font-size: 64px; }
 }
 @media (max-width: 700px) {
-  .bt-hero { min-height: 640px; padding-top: 88px; }
+  .bt-hero { min-height: min(900px, max(640px, 100svh)); padding-top: 88px; }
   .bt-hero__title { font-size: 54px; }
   .bt-grid--five { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bt-steps, .bt-community ul { grid-template-columns: 1fr; }
