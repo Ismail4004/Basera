@@ -52,7 +52,7 @@ class GrowProfileForm(forms.ModelForm):
         """
         current = self[field_name].value()
         return [
-            {"code": code, "label": label, "hint": hint, "checked": code == current,
+            {"code": code, "label": label, "hint": hint, "icon": choices.ICONS[code], "checked": code == current,
              "id": f"id_{field_name}_{code}"}
             for code, label, hint in options
         ]

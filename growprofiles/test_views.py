@@ -68,6 +68,20 @@ class CreateGrowProfileTests(TestCase):
         self.assertContains(page, "Punjab Plains")
         self.assertContains(page, "Potohar Plateau")
 
+    def test_how_matching_works_draws_each_weight_as_a_bar(self):
+        page = self.client.get(self.url)
+        self.assertContains(page, "30 pts")
+        for width in (91, 76, 61, 45, 30):  # 30, 25, 20, 15, 10 points, drawn out of 33
+            self.assertContains(page, f'style="width: {width}%"')
+        self.assertEqual(page.content.decode().count('class="bt-weights__bar"'), 5)
+        self.assertContains(page, "Your grow profiles are private. Only you can see them.")
+
+    def test_answers_are_cards_with_icons_and_purposes_are_pill_buttons(self):
+        page = self.client.get(self.url).content.decode()
+        self.assertEqual(page.count('class="bt-choice"'), 2 + 3 + 4 + 3)
+        self.assertEqual(page.count('class="bt-pill-choice"'), 6)
+        self.assertEqual(page.count('class="bt-icon"'), 2 + 3 + 4 + 3 + 6 + 1)
+
     def test_the_user_cannot_be_chosen_through_the_form(self):
         other = User.objects.create_user("bo@example.com", "x", full_name="Bo")
         self.post(user=other.pk)

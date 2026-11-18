@@ -9,7 +9,7 @@
 
 {% block content %}
 <div class="bt-container bt-formpage">
-  <form class="bt-panel bt-form" method="post" novalidate>
+  <form class="bt-form" method="post" novalidate>
     {% csrf_token %}
     <h2>Describe your space</h2>
     <p class="bt-muted">Answer six quick questions. You can change them later.</p>
@@ -39,15 +39,28 @@
     {% for group in form.groups %}
     <fieldset class="bt-field bt-choices{% if group.errors %} is-invalid{% endif %}">
       <legend>{{ group.title }}</legend>
+      {% if group.name == "purpose" %}
+      <div class="bt-pills">
+        {% for opt in group.options %}
+        <label class="bt-pill-choice" for="{{ opt.id }}">
+          <input type="radio" name="{{ group.name }}" id="{{ opt.id }}" value="{{ opt.code }}"{% if opt.checked %} checked{% endif %}>
+          {% include "growprofiles/_icon.html" with name=opt.icon size=18 %}
+          <span>{{ opt.label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% else %}
       <div class="bt-choices__grid bt-choices__grid--{{ group.cols }}">
         {% for opt in group.options %}
         <label class="bt-choice" for="{{ opt.id }}">
           <input type="radio" name="{{ group.name }}" id="{{ opt.id }}" value="{{ opt.code }}"{% if opt.checked %} checked{% endif %}>
+          {% include "growprofiles/_icon.html" with name=opt.icon size=26 %}
           <span class="bt-choice__label">{{ opt.label }}</span>
-          {% if opt.hint %}<span class="bt-choice__hint">{{ opt.hint }}</span>{% endif %}
+          <span class="bt-choice__hint">{{ opt.hint }}</span>
         </label>
         {% endfor %}
       </div>
+      {% endif %}
       {% for e in group.errors %}<p class="bt-error">{{ e }}</p>{% endfor %}
     </fieldset>
     {% endfor %}
@@ -58,17 +71,17 @@
     </div>
   </form>
 
-  <aside class="bt-panel bt-aside">
-    <h3>How matching works</h3>
-    <p>Basera only suggests plants native to your region, then scores each one out of 100.</p>
-    <dl class="bt-weights">
-      <div><dt>Sunlight</dt><dd>30 pts</dd></div>
-      <div><dt>Soil</dt><dd>25 pts</dd></div>
-      <div><dt>Water</dt><dd>20 pts</dd></div>
-      <div><dt>Indoor / outdoor</dt><dd>15 pts</dd></div>
-      <div><dt>Purpose</dt><dd>10 pts</dd></div>
-    </dl>
-    <p class="bt-muted">Your grow profiles are private. Only you can see them.</p>
+  <aside class="bt-aside">
+    <section class="bt-howmatch">
+      <h3>How matching works</h3>
+      <p>Basera only suggests plants native to your region, then scores each one out of 100.</p>
+      <dl class="bt-weights">
+        {% for w in weights %}
+        <div><dt>{{ w.label }}</dt><dd>{{ w.points }} pts</dd><span class="bt-weights__bar" aria-hidden="true"><i style="width: {{ w.bar }}%"></i></span></div>
+        {% endfor %}
+      </dl>
+    </section>
+    <p class="bt-privacy">{% include "growprofiles/_icon.html" with name="info" size=20 %}<span>Your grow profiles are private. Only you can see them.</span></p>
   </aside>
 </div>
 {% endblock %}

@@ -40,6 +40,17 @@ PURPOSES = [
 ]
 
 
+# Which icon each answer shows on its card (names match growprofiles/_icon.html).
+ICONS = {
+    "INDOOR": "home", "OUTDOOR": "sun",
+    "FULL_SUN": "sun", "PARTIAL_SHADE": "cloud", "SHADE": "moon",
+    "SANDY": "layers", "LOAM": "layers", "CLAY": "layers", "ROCKY": "layers",
+    "LOW": "drop", "MEDIUM": "drop", "HIGH": "drop",
+    "SHADE_COOLING": "target", "FOOD": "target", "POLLINATOR": "target",
+    "EROSION_CONTROL": "target", "ORNAMENTAL": "target", "MEDICINAL": "target",
+}
+
+
 def label_for(options, code):
     """The label for a stored code ("FULL_SUN" -> "Full sun"); unknown codes pass through."""
     return {c: label for c, label, _ in options}.get(code, code)

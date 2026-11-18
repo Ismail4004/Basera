@@ -14,6 +14,8 @@ from django.urls import reverse
 
 from accounts.ui import page_band
 
+from matching.services import CRITERION_LABELS, WEIGHTS
+
 from . import choices
 from .forms import GrowProfileForm
 from .models import GrowProfile
@@ -70,8 +72,11 @@ def profile_create(request):
             return redirect("grow_profiles")
     else:
         form = GrowProfileForm()
+    # The bars are drawn against 33 (the longest bar in the design is Sunlight's 30 points).
+    weights = [{"label": CRITERION_LABELS[k], "points": w, "bar": round(w / 33 * 100)} for k, w in WEIGHTS.items()]
     context = {
         "form": form,
+        "weights": weights,
         **page_band(request, "Create a grow profile", "Answer a few quick questions about your space.",
                     ("My grow profiles", reverse("grow_profiles")), ("New", None)),
     }
