@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'accounts',
     'catalog',
     'growprofiles',
+    'matching',
     'orders',
 ]
 

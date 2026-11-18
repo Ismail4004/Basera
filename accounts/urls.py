@@ -13,8 +13,6 @@ urlpatterns = [
     path("terms/", views.placeholder, {"page_name": "Terms"}, name="terms"),
     path("help/", views.placeholder, {"page_name": "Help"}, name="help"),
     # Header links to pages that later stories build; replace these when they exist.
-    path("profiles/", views.coming_soon, {"page_name": "My Grow Profiles"}, name="grow_profiles"),
-    path("matches/", views.coming_soon, {"page_name": "Match Results"}, name="match_results"),
     path("about/", views.coming_soon, {"page_name": "About"}, name="about"),
     path("seller/listings/", views.coming_soon, {"page_name": "My Listings"}, name="seller_listings"),
     path("seller/orders/", views.coming_soon, {"page_name": "Orders"}, name="seller_orders"),

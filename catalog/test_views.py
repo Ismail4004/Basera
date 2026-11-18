@@ -176,7 +176,7 @@ class LandingPlaceholderTests(TestCase):
     def test_header_placeholder_pages_load(self):
         # "cart" is no longer a placeholder: it is a real page that needs a login,
         # covered by orders.test_cart_views.
-        for name in ("grow_profiles", "match_results", "about", "seller_listings", "seller_orders",
+        for name in ("about", "seller_listings", "seller_orders",
                      "seller_earnings", "seller_guide", "admin_users", "admin_reports", "admin_settings"):
             with self.subTest(name=name):
                 self.assertEqual(self.client.get(reverse(name)).status_code, 200)
