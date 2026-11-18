@@ -58,6 +58,34 @@ before relying on them:
 - `PYTHON_VERSION` in `render.yaml` is `3.13.9`. If Render says it does not have that
   version, change it to one it lists.
 
+## If the site feels slow
+
+Render's free web service has a very small share of a CPU (about a tenth of one) and
+512 MB of memory, so it is much slower than your computer even when it is awake.
+What was done about it, and what is left:
+
+- **Done: smaller images.** The 35 plant photos went from 5.1 MB to 2.6 MB (720 px,
+  about 64 KB each), the home hero from 349 KB to 189 KB, and the login background
+  from a 1 MB PNG to a 99 KB JPEG. Tests (`basera_site/test_performance.py`) stop
+  these from growing again.
+- **Done: photos and files are cached.** The photos present at start-up are served by
+  WhiteNoise with a week of caching; CSS, JS and images get a hash in their name and
+  are cached for a year, and are sent compressed (the main stylesheet shrinks from
+  19 KB to 5 KB). A repeat visit downloads almost nothing.
+- **Done: 2 workers with 4 threads each**, so a page with a dozen photos is not
+  served one file at a time. Password hashing (Argon2) is deliberately heavy and can
+  make log in and sign up take a few seconds on the free plan.
+- **Done: the HTMX script no longer blocks the page** from drawing.
+- **Check on the dashboard:** the database and the web service must be in the
+  **same region** (both show a region name). If they differ, every database query
+  crosses the internet. The Blueprint puts them together; a hand-made pair may not.
+- **Measure before guessing:** in Chrome press F12, open the **Network** tab and
+  reload. "Waiting for server response" on the first line is how long the server
+  took. Over about one second means the server (or the database region); a quick
+  first line with slow images means the images.
+- **The real fix for a slow live demo** is a paid web service (Starter, a few
+  dollars a month, about five times the CPU and no sleeping).
+
 ## Updating the live site
 
 Push to `main`. Render rebuilds and redeploys by itself. `build.sh` is safe to run

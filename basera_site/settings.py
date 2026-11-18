@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+import shutil
+import sys
+import tempfile
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -184,7 +187,7 @@ STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG
-        else 'whitenoise.storage.CompressedStaticFilesStorage',
+        else 'basera_site.storage.ForgivingManifestStorage',
     },
 }
 WHITENOISE_AUTOREFRESH = DEBUG
@@ -194,7 +197,12 @@ WHITENOISE_USE_FINDERS = DEBUG
 # Uploaded files (plant species images)
 
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Photos live here. While the tests run they go to a temporary folder instead, so
+# running the tests never fills the real media/ folder with duplicate photos.
+MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT') or BASE_DIR / 'media')
+if 'test' in sys.argv[1:2] and not os.environ.get('MEDIA_ROOT'):
+    MEDIA_ROOT = Path(tempfile.gettempdir()) / 'basera-test-media'
+    shutil.rmtree(MEDIA_ROOT, ignore_errors=True)  # every test run starts with an empty folder
 # Django itself serves /media/ while developing, and when SERVE_MEDIA=True. That is
 # fine for a small demo site; a busy one should use object storage (S3, Cloudinary).
 SERVE_MEDIA = flag('SERVE_MEDIA', default=DEBUG)
