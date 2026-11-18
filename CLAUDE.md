@@ -89,7 +89,7 @@ Figma, the team agreed on these additions:
 - a light glass effect and a stronger shadow on the form box;
 - stronger text shadows so text stands out from the illustration;
 - the welcome copy raised 24px;
-- a slightly taller page with a scroll parallax;
+- a scroll parallax (the auth pages are now exactly one screen tall, so it only shows on a screen too short for the content);
 - motion.
 
 Don't add other effects: no rounded corners and no extra accent colours.
@@ -163,8 +163,11 @@ fixed (class `.basera-backdrop`, already in `base.html`).
   16.5px left of the window's centre (measured with `100vw` so the scrollbar
   doesn't shift it).
 - Page padding is 36px top, 24px bottom.
-- The page is **120px taller than the window** (`--basera-scroll-room`), so it
-  scrolls slightly on a laptop.
+- Auth pages are **exactly one screen tall** (`--basera-scroll-room: 0`, `100dvh`), so the footer
+  links are always in view and nothing scrolls. On desktop screens shorter than 860 / 740 / 680px
+  tall the spacing is tightened (media queries at the end of `basera.css`) so even the tall Create
+  account box fits down to about 657px; fields and buttons stay 44px. A phone or a screen shorter
+  than that scrolls instead of cutting content off. (It used to be 120px taller than the window.)
 - Header 88px tall. Footer 44px tall with 24px gaps between links.
 - **Auth pages:**
   - Welcome copy on the left: 532px wide, 24px gap, **80px** below the header
