@@ -1,0 +1,74 @@
+{% extends "accounts/site_base.html" %}
+
+{% block title %}Create a grow profile{% endblock %}
+
+{% comment %}
+  US-06 (Figma "Create Grow Profile"). Posts to itself; the form uses novalidate so
+  the server shows the styled errors. Needs: form (growprofiles.forms.GrowProfileForm).
+{% endcomment %}
+
+{% block content %}
+<div class="bt-container bt-formpage">
+  <form class="bt-panel bt-form" method="post" novalidate>
+    {% csrf_token %}
+    <h2>Describe your space</h2>
+    <p class="bt-muted">Answer six quick questions. You can change them later.</p>
+
+    {% if form.errors %}<p class="bt-notice bt-notice--error" role="alert">Please fix the highlighted fields and try again.</p>{% endif %}
+
+    <div class="bt-field{% if form.name.errors %} is-invalid{% endif %}">
+      <label for="id_name">Profile name</label>
+      <input class="bt-input" type="text" name="name" id="id_name" maxlength="100"
+             placeholder="e.g. Balcony, Backyard" value="{{ form.name.value|default:'' }}"
+             {% if form.name.errors %}aria-invalid="true" aria-describedby="err-name"{% endif %}>
+      {% for e in form.name.errors %}<p class="bt-error" id="err-name">{{ e }}</p>{% endfor %}
+    </div>
+
+    <div class="bt-field{% if form.region.errors %} is-invalid{% endif %}">
+      <label for="id_region">Region</label>
+      <select class="bt-input" name="region" id="id_region"
+              {% if form.region.errors %}aria-invalid="true" aria-describedby="err-region"{% endif %}>
+        <option value="">Select your region</option>
+        {% for region in form.fields.region.queryset %}
+          <option value="{{ region.pk }}"{% if form.region.value|stringformat:"s" == region.pk|stringformat:"s" %} selected{% endif %}>{{ region.name }}</option>
+        {% endfor %}
+      </select>
+      {% for e in form.region.errors %}<p class="bt-error" id="err-region">{{ e }}</p>{% endfor %}
+    </div>
+
+    {% for group in form.groups %}
+    <fieldset class="bt-field bt-choices{% if group.errors %} is-invalid{% endif %}">
+      <legend>{{ group.title }}</legend>
+      <div class="bt-choices__grid bt-choices__grid--{{ group.cols }}">
+        {% for opt in group.options %}
+        <label class="bt-choice" for="{{ opt.id }}">
+          <input type="radio" name="{{ group.name }}" id="{{ opt.id }}" value="{{ opt.code }}"{% if opt.checked %} checked{% endif %}>
+          <span class="bt-choice__label">{{ opt.label }}</span>
+          {% if opt.hint %}<span class="bt-choice__hint">{{ opt.hint }}</span>{% endif %}
+        </label>
+        {% endfor %}
+      </div>
+      {% for e in group.errors %}<p class="bt-error">{{ e }}</p>{% endfor %}
+    </fieldset>
+    {% endfor %}
+
+    <div class="bt-actions">
+      <button class="bt-btn" type="submit">Save grow profile</button>
+      <a class="bt-btn bt-btn--outline" href="{% url 'grow_profiles' %}">Cancel</a>
+    </div>
+  </form>
+
+  <aside class="bt-panel bt-aside">
+    <h3>How matching works</h3>
+    <p>Basera only suggests plants native to your region, then scores each one out of 100.</p>
+    <dl class="bt-weights">
+      <div><dt>Sunlight</dt><dd>30 pts</dd></div>
+      <div><dt>Soil</dt><dd>25 pts</dd></div>
+      <div><dt>Water</dt><dd>20 pts</dd></div>
+      <div><dt>Indoor / outdoor</dt><dd>15 pts</dd></div>
+      <div><dt>Purpose</dt><dd>10 pts</dd></div>
+    </dl>
+    <p class="bt-muted">Your grow profiles are private. Only you can see them.</p>
+  </aside>
+</div>
+{% endblock %}
