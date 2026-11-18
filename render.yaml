@@ -1,0 +1,40 @@
+# Render "Blueprint": describes the whole site so it can be created in a few clicks.
+# New > Blueprint > pick this repository. Full steps: docs/deployment/README.md
+databases:
+  - name: basera-db
+    databaseName: basera
+    user: basera_app
+    plan: free            # Check render.com/pricing: the free database is time-limited.
+
+services:
+  - type: web
+    name: basera
+    runtime: python
+    plan: free            # Free web services sleep after 15 minutes without visitors.
+    buildCommand: ./build.sh
+    startCommand: gunicorn basera_site.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.9
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true          # Render makes a long random key and keeps it.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: basera-db
+          property: connectionString
+      - key: SEED_DEMO_ACCOUNTS      # No shared demo passwords on the public site.
+        value: "False"
+      - key: SERVE_MEDIA             # Serve the plant photos from this service.
+        value: "True"
+      # Fill these in on the Render dashboard (they are secrets, so they are not stored here):
+      - key: ADMIN_EMAIL             # The site admin, created on the first deploy.
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: EMAIL_ADDRESS           # Optional: Gmail address that sends password-reset emails.
+        sync: false
+      - key: EMAIL_APP_PASSWORD      # Optional: its 16-character Gmail app password.
+        sync: false

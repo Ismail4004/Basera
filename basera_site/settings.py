@@ -13,7 +13,10 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
+
+from .envconfig import csv, database_from_url, flag
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,19 +30,37 @@ load_dotenv(BASE_DIR / '.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# The fallback is only for local development; set SECRET_KEY in .env (or the
-# environment) for anything else.
-SECRET_KEY = (
-    os.environ.get('SECRET_KEY')
-    or 'django-insecure-z+)qe@#yje4p@h%xuvx49&k0e)ldgj*g87dzm-o+t(&+_+%k76'
-)
+# Render sets RENDER=true on every service it runs. Treating that as "production"
+# means a forgotten DEBUG setting can never leave debugging on in a live site.
+ON_RENDER = os.environ.get('RENDER') == 'true'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Defaults to True for local development; set DEBUG=False in production.
-DEBUG = (os.environ.get('DEBUG') or 'True').strip().lower() in ('1', 'true', 'yes', 'on')
+# True for local development; False on Render, or when DEBUG=False is set.
+DEBUG = flag('DEBUG', default=not ON_RENDER)
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: keep the secret key used in production secret!
+# The fallback is only for local development. With DEBUG off the site refuses to
+# start without a real SECRET_KEY, so it can never run on the public fallback.
+SECRET_KEY = os.environ.get('SECRET_KEY') or ''
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('Set the SECRET_KEY environment variable when DEBUG is off.')
+    SECRET_KEY = 'django-insecure-z+)qe@#yje4p@h%xuvx49&k0e)ldgj*g87dzm-o+t(&+_+%k76'
+
+# Site addresses this server answers to: ALLOWED_HOSTS="basera.example.com,www.example.com".
+# Render adds its own address (RENDER_EXTERNAL_HOSTNAME) automatically. While
+# developing, an empty list still allows localhost.
+ALLOWED_HOSTS = csv('ALLOWED_HOSTS')
+RENDER_HOST = (os.environ.get('RENDER_EXTERNAL_HOSTNAME') or '').strip()
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured('Set ALLOWED_HOSTS (the site address) when DEBUG is off.')
+
+# Forms posted from these https:// addresses are trusted (needed behind a proxy).
+CSRF_TRUSTED_ORIGINS = csv('CSRF_TRUSTED_ORIGINS')
+if RENDER_HOST:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_HOST}')
 
 
 # Application definition
@@ -60,6 +81,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serves the CSS, JS and images in production without a separate web server.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -92,19 +115,23 @@ WSGI_APPLICATION = 'basera_site.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-# PostgreSQL, configured from environment variables / .env (never hard-code
-# credentials here). One-time setup: docs/database/README.md.
+# PostgreSQL. Hosting services give one DATABASE_URL; locally the separate DB_*
+# variables in .env are used (never hard-code credentials here). One-time local
+# setup: docs/database/README.md.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME') or 'basera',
-        'USER': os.environ.get('DB_USER') or 'basera_app',
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST') or 'localhost',
-        'PORT': os.environ.get('DB_PORT') or '5432',
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {'default': database_from_url(os.environ['DATABASE_URL'])}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME') or 'basera',
+            'USER': os.environ.get('DB_USER') or 'basera_app',
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST') or 'localhost',
+            'PORT': os.environ.get('DB_PORT') or '5432',
+        }
     }
-}
 
 
 # Custom user model (accounts.User): users log in with their email address.
@@ -151,12 +178,30 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# `collectstatic` gathers every app's files here; WhiteNoise serves them in production.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG
+        else 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_USE_FINDERS = DEBUG
 
 
 # Uploaded files (plant species images)
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+# Django itself serves /media/ while developing, and when SERVE_MEDIA=True. That is
+# fine for a small demo site; a busy one should use object storage (S3, Cloudinary).
+SERVE_MEDIA = flag('SERVE_MEDIA', default=DEBUG)
+
+# Create the demo accounts (admin, seller, customer with random passwords printed
+# once) when seeding. Turn off in production: see docs/deployment/README.md.
+SEED_DEMO_ACCOUNTS = flag('SEED_DEMO_ACCOUNTS', default=True)
 
 
 # Email
@@ -191,6 +236,19 @@ else:
         },
     }
     DEFAULT_FROM_EMAIL = 'Basera <no-reply@basera.local>'
+
+
+# HTTPS and cookie safety. Only when DEBUG is off, so local http://127.0.0.1 keeps working.
+# Hosts like Render end HTTPS at their proxy and tell Django through this header.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = flag('SECURE_SSL_REDIRECT', default=True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # HSTS tells browsers to use https only. Starts at 1 hour so a mistake is easy
+    # to undo; raise it (for example to 31536000, one year) once the site is stable.
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS') or 3600)
+    SECURE_REFERRER_POLICY = 'same-origin'
 
 
 # Authentication

@@ -256,6 +256,43 @@ NEW_SECT = [
     ]),
 ]
 
+EP, DP = "accounts.test_error_pages.ErrorPageTests.", "basera_site.test_deploy."
+NEW_SECT += [
+    ("A17. Error pages (accounts/test_error_pages.py)", [
+        ("EP-01", "Open a page that does not exist", "Branded 404: butterfly, \"Page not found\", Back to home and Browse catalogue", EP + "test_ep01_a_missing_page_shows_the_branded_404_with_two_ways_out"),
+        ("EP-02", "404 page layout", "Keeps the site header and footer", EP + "test_ep02_the_404_page_keeps_the_site_header_and_footer"),
+        ("EP-03", "404 page when logged in", "Works for a logged-in customer", EP + "test_ep03_the_404_page_works_when_logged_in"),
+        ("EP-04", "Access denied", "Branded 403 with Back to home and Log in", EP + "test_ep04_access_denied_shows_the_branded_403"),
+        ("EP-05", "Form sent without a valid security token", "Friendly \"Please try again\" 403 page", EP + "test_ep05_a_form_without_a_valid_token_shows_a_friendly_403"),
+        ("EP-06", "Server error page", "Plain, self-contained page that needs nothing else to work", EP + "test_ep06_the_500_page_is_plain_html_that_needs_no_context"),
+    ]),
+    ("A18. Production setup (basera_site/test_deploy.py)", [
+        ("DP-T01", "Yes/no settings (1, true, yes, on)", "Read in any case; anything else is no", DP + "EnvHelperTests.test_dp01_flag_reads_yes_and_no_words_in_any_case"),
+        ("DP-T02", "Yes/no setting left unset or blank", "Uses the default", DP + "EnvHelperTests.test_dp02_flag_uses_the_default_when_unset_or_blank"),
+        ("DP-T03", "Comma-separated setting", "Becomes a clean list", DP + "EnvHelperTests.test_dp03_csv_gives_a_clean_list"),
+        ("DP-T04", "DATABASE_URL from the host", "Turned into a database setting, with special characters and sslmode", DP + "EnvHelperTests.test_dp04_database_url_becomes_a_django_database_entry"),
+        ("DP-T05", "DATABASE_URL without a port", "Uses 5432", DP + "EnvHelperTests.test_dp05_a_database_url_without_a_port_uses_5432"),
+        ("DP-T06", "Wrong kind of DATABASE_URL", "Refused with a clear error", DP + "EnvHelperTests.test_dp06_bad_database_urls_are_refused"),
+        ("DP-T07", "Django's own deploy check, production settings", "Only two optional HSTS notes remain (include-subdomains, preload)", DP + "ProductionSettingsTests.test_dp07_production_passes_the_django_deploy_check_except_two_optional_hsts_extras"),
+        ("DP-T08", "Debug off, no secret key", "The site refuses to start", DP + "ProductionSettingsTests.test_dp08_with_debug_off_the_site_refuses_to_start_without_a_secret_key"),
+        ("DP-T09", "Debug off, no allowed hosts", "The site refuses to start", DP + "ProductionSettingsTests.test_dp09_with_debug_off_the_site_refuses_to_start_without_allowed_hosts"),
+        ("DP-T10", "Running on Render with DEBUG not set", "Debug is off by itself", DP + "ProductionSettingsTests.test_dp10_running_on_render_turns_debug_off_by_itself"),
+        ("DP-T11", "Render's address", "Added to allowed hosts and trusted origins", DP + "ProductionSettingsTests.test_dp11_render_adds_its_own_address_to_hosts_and_trusted_origins"),
+        ("DP-T12", "Local development", "Still starts with none of the production settings", DP + "ProductionSettingsTests.test_dp12_local_development_keeps_working_without_any_of_this"),
+        ("DP-T13", "Production cookies and HTTPS", "Secure cookies, https redirect, HSTS, proxy header trusted", DP + "ProductionSettingsTests.test_dp13_in_production_cookies_are_secure_and_https_is_forced"),
+        ("DP-T14", "Server packages", "gunicorn and WhiteNoise are pinned and WhiteNoise is in the middleware", DP + "BuildFileTests.test_dp14_whitenoise_and_gunicorn_are_installed_requirements"),
+        ("DP-T15", "Build script", "Executable; installs, collects static files, migrates, seeds, in that order", DP + "BuildFileTests.test_dp15_the_build_script_collects_static_migrates_and_seeds_in_that_order"),
+        ("DP-T16", "Render blueprint", "Describes the site; admin and email passwords are not stored in it", DP + "BuildFileTests.test_dp16_the_render_blueprint_describes_the_site_without_secrets"),
+        ("DP-T17", "Git ignore", "Keeps .env, collected static files and uploads out of GitHub", DP + "BuildFileTests.test_dp17_secrets_and_build_output_stay_out_of_git"),
+        ("DP-T18", "Seed on the live site", "35 plants, no demo logins, nursery account that cannot be logged into, no password printed", DP + "ProductionSeedTests.test_dp18_no_demo_logins_and_no_shared_password_in_production"),
+        ("DP-T19", "ADMIN_EMAIL and ADMIN_PASSWORD", "A real admin is created with the Admin role", DP + "ProductionSeedTests.test_dp19_a_real_admin_is_created_from_the_environment"),
+        ("DP-T20", "Weak ADMIN_PASSWORD", "The seed stops and no admin is created", DP + "ProductionSeedTests.test_dp20_a_weak_admin_password_stops_the_seed"),
+        ("DP-T21", "Seed run again", "Keeps the admin; nothing duplicated", DP + "ProductionSeedTests.test_dp21_running_it_again_keeps_the_admin_and_changes_nothing"),
+        ("DP-T22", "A photo file disappears (host restart)", "The next seed puts it back", DP + "ProductionSeedTests.test_dp22_a_photo_file_that_disappeared_is_put_back"),
+        ("DP-T23", "Media route and ../ paths", "Files outside the media folder are refused and never returned", DP + "MediaServingTests.test_dp23_the_media_route_never_serves_files_outside_the_media_folder"),
+    ]),
+]
+
 # --------------------------------------------------------------------------------------
 # Manual cases: (ID, test case, expected result, result)
 # Result words: Pass | Carried over (files unchanged since Shehroze's run) | Not re-run | Open
@@ -301,26 +338,33 @@ MANUAL_NEW = [
     ("M-36", "Customer hero on different window sizes", "Photo fills the first screen at 700 and 1000 px tall; above 1100 px a cream strip shows by design (cap)", "Pass"),
     ("M-37", "Browser console and network on the new pages", "No script errors; the only 404 was the deliberate missing-species request", "Pass"),
     ("M-38", "Database health", "No missing migrations; PostgreSQL 18; 10 tables; demo passwords stored as argon2", "Pass"),
+    ("M-39", "Production build on an empty database (build.sh, DEBUG off)", "141 static files collected, tables created, real admin created, 35 plants seeded, nursery account locked, no demo password printed", "Pass"),
+    ("M-40", "Production server (gunicorn) with debug off", "Pages, CSS, JS, images and plant photos served; unknown page gives the plain 404 with no debug details; ../ media path refused; wrong Host answered 400; cookies Secure; HSTS sent behind an HTTPS proxy", "Pass"),
+    ("M-41", "Real admin logs in under production settings (simulated HTTPS proxy)", "Wrong password refused; right password works with the email in capitals; session cookie Secure and HttpOnly; admin landing shows 35 listings; a form sent without token or origin is refused (403)", "Pass"),
+    ("M-42", "Branded 404 page in the browser", "Butterfly, large 404, \"Page not found\", Back to home and Browse catalogue; matches the Figma design", "Pass"),
 ]
 DEPLOY = [
     ("DP-01", "manage.py check", "No issues", "Pass"),
     ("DP-02", "Migrations in step with the models", "makemigrations --check finds nothing; migrate --check passes", "Pass"),
-    ("DP-03", "DEBUG is off in production", "Currently defaults to True unless DEBUG=False is set in the environment", "Open"),
-    ("DP-04", "Strong secret key from the environment", "Currently falls back to an insecure development key", "Open"),
-    ("DP-05", "ALLOWED_HOSTS lists the site address", "Currently empty, so a deployed site would refuse every request", "Open"),
-    ("DP-06", "HTTPS settings", "SSL redirect, secure session and CSRF cookies and HSTS are not set", "Open"),
-    ("DP-07", "Real email backend", "Console backend by default; the Gmail address and app password must be set on the server", "Open"),
-    ("DP-08", "Static files served in production", "No web server (gunicorn) or static file handling (WhiteNoise, STATIC_ROOT) yet", "Open"),
-    ("DP-09", "Uploaded and seeded plant photos survive restarts", "Photos live in media/, which most free hosts wipe on restart", "Open"),
-    ("DP-10", "Demo account passwords", "The three demo accounts use a shared simple password; change or remove before going public", "Open"),
+    ("DP-03", "DEBUG is off in production", "Off automatically on Render (or with DEBUG=False); confirmed: plain 404, no debug page", "Pass"),
+    ("DP-04", "Strong secret key from the environment", "Required when debug is off (the site refuses to start without one); Render generates a long one", "Pass"),
+    ("DP-05", "ALLOWED_HOSTS lists the site address", "Required when debug is off; Render's address is added automatically; a wrong Host header gets 400", "Pass"),
+    ("DP-06", "HTTPS settings", "SSL redirect, secure session and CSRF cookies and HSTS (1 hour); Django's deploy check shows only two optional HSTS notes", "Pass"),
+    ("DP-07", "Real email backend", "Set EMAIL_ADDRESS and EMAIL_APP_PASSWORD on the Render dashboard (secrets cannot be stored in the repository); without them reset links are only printed in the log", "Open"),
+    ("DP-08", "Static files served in production", "gunicorn and WhiteNoise; collectstatic runs in build.sh; CSS, JS and images served in the production run", "Pass"),
+    ("DP-09", "Plant photos survive restarts", "The 35 seeded photos are restored on every deploy (tested by deleting a file); photos uploaded by sellers later need a persistent disk or cloud storage", "Pass"),
+    ("DP-10", "Demo account passwords", "No demo logins on the live site; the admin comes from ADMIN_EMAIL and ADMIN_PASSWORD; the nursery owner account cannot be logged into", "Pass"),
+    ("DP-11", "Live site created on Render", "Needs your Render account: New > Blueprint > this repository (steps in docs/deployment/README.md)", "Open"),
+    ("DP-12", "Smoke test of the live address", "After the first deploy: home, catalogue with photos, sign up, grow profile, matches, admin login, a 404 page", "Open"),
 ]
 
 FINDINGS = [
-    "No test failed. One wording problem was found while testing and fixed: a seller with no plants was told \"Every plant is well stocked\" (case W-04).",
+    "No automated test failed in the final run. One wording problem was found during manual testing and fixed: a seller with no plants was told \"Every plant is well stocked\" (case W-04).",
     "Shehroze's expectation for M-08 changed on purpose: a new seller now opens the Seller landing page, not a placeholder showing \"Account type: Seller\".",
     "Not re-run: M-07 (scroll parallax: the test browser pane was hidden, which pauses animation) and M-17 (real Gmail: needs the team's app password). Both are unchanged code from Shehroze's passing run.",
     "M-01 to M-03 are carried over: the login, sign-up and forgot-password templates, styles and scripts are identical to Shehroze's branch (checked with git diff).",
-    "The deployment items DP-03 to DP-10 are open. They are settings and files that production needs, not bugs in the pages; they must be done before main is deployed.",
+    "Production setup was added after the first test run (sections A17 and A18, M-39 to M-42). The production build was rehearsed on this computer with a scratch database, debug off and gunicorn.",
+    "Still open: DP-07 (the Gmail details must be entered on the Render dashboard), DP-11 (the live site must be created from the Render account) and DP-12 (smoke test of the live address).",
     "On a very tall window (over 1100 px) a cream strip shows under the customer hero. This is the deliberate height cap (M-36).",
 ]
 
@@ -388,8 +432,8 @@ def build(out):
             f"Deployment readiness: {count('Pass', DEPLOY)} passed, {count('Open', DEPLOY)} open.", sub),
         Paragraph(f"Run on the dev branch (commit {commit}, branch {branch}) on {date.today():%d %B %Y}. "
                   "Sections A1 to A6 and tests M-01 to M-19 are Shehroze's original cases, re-run on dev. "
-                  "Sections A7 to A16, M-20 to M-38 and section C were added after the catalogue, cart, grow profile, "
-                  "matching and landing page work was merged.", note),
+                  "Sections A7 to A18, M-20 to M-42 and section C were added after the catalogue, cart, grow profile, "
+                  "matching and landing page work was merged, and production setup was added.", note),
         Paragraph("Result words: Pass = performed and passed. Carried over = the files are unchanged since Shehroze's "
                   "passing run (checked with git diff). Not re-run = could not be repeated in this run (reason given). "
                   "Open = a known gap to close before release.", note),

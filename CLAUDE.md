@@ -35,6 +35,8 @@ the `basera_app` role is allowed to create the test database).
 | Grow profiles | `growprofiles/` |
 | Cart items, orders, order items | `orders/` |
 | Database docs: ERD transcription, generated `schema.sql`, setup script | `docs/database/` |
+| Going live (Render): `render.yaml`, `build.sh`, settings read from env vars, guide | `docs/deployment/README.md` |
+| Test cases (PDF, rebuilt from the real test run) | `docs/testing/` |
 | Shared page shell (fonts, Bootstrap, header, footer, background) | `accounts/templates/accounts/base.html` |
 | Design tokens + all component styles | `accounts/static/accounts/css/basera.css` |
 | Show/Hide password script (reusable) | `accounts/static/accounts/js/password-toggle.js` |

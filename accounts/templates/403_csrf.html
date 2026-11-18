@@ -1,0 +1,20 @@
+{% extends "accounts/site_base.html" %}
+{% load static %}
+
+{% block title %}Please try again{% endblock %}
+{% block band %}{% endblock %}
+
+{% comment %}Shown when a form is posted without a valid security token (for example after the page sat open for days).{% endcomment %}
+
+{% block content %}
+<section class="bt-container bt-errorpage">
+  <img class="bt-errorpage__art" src="{% static 'accounts/img/error-butterfly.png' %}" alt="" width="140" height="128">
+  <p class="bt-errorpage__code" aria-hidden="true">403</p>
+  <h1>Please try again</h1>
+  <p>That form has expired or didn’t come from Basera. Go back, reload the page and send it again.</p>
+  <div class="bt-actions">
+    <a class="bt-btn" href="{% url 'home' %}">Back to home</a>
+    <a class="bt-btn bt-btn--outline" href="{% url 'login' %}">Log in</a>
+  </div>
+</section>
+{% endblock %}
