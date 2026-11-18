@@ -25,6 +25,7 @@ urlpatterns = [
     path('', include('catalog.urls')),
     path('', include('orders.urls')),
     path('', include('growprofiles.urls')),
+    path('', include('matching.urls')),
 ]
 
 # Uploaded species photos are served by Django only while developing (DEBUG).

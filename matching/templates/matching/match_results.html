@@ -1,0 +1,55 @@
+{% extends "accounts/site_base.html" %}
+{% load static %}
+
+{% block title %}Your matches{% endblock %}
+
+{% comment %}
+  US-08 (Figma "Match results"). Needs: profile, summary, total, matches, show_all, viewer.
+{% endcomment %}
+
+{% block content %}
+<div class="bt-container">
+  <section class="bt-panel bt-profilebar" aria-label="Profile">
+    <strong>Profile:</strong> <span class="bt-profilebar__name">{{ profile.name }}</span>
+    <ul class="bt-chips">
+      <li class="bt-chip">{{ summary.region }}</li><li class="bt-chip">{{ summary.space }}</li>
+      <li class="bt-chip">{{ summary.sunlight }}</li><li class="bt-chip">{{ summary.soil }}</li>
+      <li class="bt-chip">{{ summary.water }}</li><li class="bt-chip">{{ summary.purpose }}</li>
+    </ul>
+  </section>
+
+  {% if matches %}
+    <div class="bt-section__head">
+      <div>
+        <h2 class="bt-section-title">{{ total }} native plant{{ total|pluralize }} match{{ total|pluralize:"es," }} your space</h2>
+        <p class="bt-muted">Ranked from best fit to weakest fit. Scores are out of 100.</p>
+      </div>
+      <ul class="bt-legend" aria-label="Score guide">
+        <li><span class="bt-fit bt-fit--great">70–100</span> Great fit</li>
+        <li><span class="bt-fit bt-fit--good">40–69</span> Good fit</li>
+        <li><span class="bt-fit bt-fit--low">Under 40</span> Low fit</li>
+      </ul>
+    </div>
+    <p class="bt-notice">Invasive species are never shown in matches. Plants that are out of stock stay on the list and are marked.</p>
+
+    <ol class="bt-matches">
+      {% for m in matches %}
+        {% include "matching/_match_card.html" %}
+      {% endfor %}
+    </ol>
+
+    {% if total > matches|length or show_all and total > 5 %}
+      <p class="bt-matches__more">
+        {% if show_all %}Showing all {{ total }} matches · <a href="?">Show the top 5</a>
+        {% else %}Showing the top {{ matches|length }} of {{ total }} matches · <a class="bt-btn bt-btn--outline" href="?all=1">Show all {{ total }} matches</a>{% endif %}
+      </p>
+    {% endif %}
+  {% else %}
+    <section class="bt-panel bt-empty-state">
+      <h2 class="bt-section-title">No native species match this profile</h2>
+      <p>Basera only suggests native, non-invasive plants.</p>
+      <div class="bt-actions"><a class="bt-btn" href="{% url 'catalogue' %}">Browse catalogue</a></div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

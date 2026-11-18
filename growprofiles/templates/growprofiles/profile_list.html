@@ -27,6 +27,7 @@
           <li class="bt-chip">{{ profile.summary.water }}</li>
           <li class="bt-chip">{{ profile.summary.purpose }}</li>
         </ul>
+        <div class="bt-actions"><a class="bt-btn" href="{% url 'match_profile' profile.pk %}">Find plants</a></div>
       </li>
       {% endfor %}
     </ul>
