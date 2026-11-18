@@ -18,6 +18,29 @@
     </ul>
   </section>
 
+  {% if not has_fit %}
+    <section class="bt-panel bt-nofit" aria-labelledby="nofit-title">
+      <h2 class="bt-section-title" id="nofit-title">{% if matches %}No strong matches for this profile yet{% else %}No native species match this profile{% endif %}</h2>
+      <p>Basera only suggests native, non-invasive plants. Try relaxing one answer below to see more options.</p>
+      {% if matches %}
+      <ul class="bt-relax">
+        {% for h in hints %}
+        <li><strong>{{ h.label }}</strong><span>{% if h.best %}Adds the most · {% endif %}+{{ h.gained }} plant{{ h.gained|pluralize }}</span></li>
+        {% endfor %}
+      </ul>
+      {% elif other_regions %}
+      <p>Nothing native to {{ summary.region }} is listed yet. These regions have plants today:</p>
+      <ul class="bt-relax">
+        {% for r in other_regions %}<li><strong>{{ r.name }}</strong><span>{{ r.n }} plant{{ r.n|pluralize }}</span></li>{% endfor %}
+      </ul>
+      {% endif %}
+      <div class="bt-actions">
+        <a class="bt-btn" href="{% url 'grow_profile_new' %}">Create another profile</a>
+        <a class="bt-btn bt-btn--outline" href="{% url 'catalogue' %}">Browse catalogue</a>
+      </div>
+    </section>
+  {% endif %}
+
   {% if matches %}
     <div class="bt-section__head">
       <div>
@@ -38,18 +61,12 @@
       {% endfor %}
     </ol>
 
-    {% if total > matches|length or show_all and total > 5 %}
+    {% if total > 5 %}
       <p class="bt-matches__more">
         {% if show_all %}Showing all {{ total }} matches · <a href="?">Show the top 5</a>
         {% else %}Showing the top {{ matches|length }} of {{ total }} matches · <a class="bt-btn bt-btn--outline" href="?all=1">Show all {{ total }} matches</a>{% endif %}
       </p>
     {% endif %}
-  {% else %}
-    <section class="bt-panel bt-empty-state">
-      <h2 class="bt-section-title">No native species match this profile</h2>
-      <p>Basera only suggests native, non-invasive plants.</p>
-      <div class="bt-actions"><a class="bt-btn" href="{% url 'catalogue' %}">Browse catalogue</a></div>
-    </section>
   {% endif %}
 </div>
 {% endblock %}

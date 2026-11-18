@@ -184,3 +184,40 @@ def rank(profile):
         matches.append(Match(species=species, score=round(sum(c.points for c in criteria)), criteria=criteria))
     matches.sort(key=lambda m: (-m.score, m.species.common_name.lower()))
     return matches
+
+
+CRITERION_LABELS = {"sunlight": "Sunlight", "soil": "Soil", "water": "Water", "setting": "Indoor / outdoor",
+                    "purpose": "Purpose"}
+
+
+def relaxing_hints(matches):
+    """US-10: which single criterion, if relaxed, would turn the most plants into a fit.
+
+    "A fit" means a score of 40 or more. For each criterion we count the plants
+    that are under 40 now but would reach 40 if that criterion counted in full.
+    Returns [{"label", "gained", "best"}] in page order; "best" marks the largest.
+    """
+    gains = {key: 0 for key in WEIGHTS}
+    for m in matches:
+        if m.score >= LOW_FIT:
+            continue
+        for c in m.criteria:
+            if m.score - c.points + c.weight >= LOW_FIT:
+                gains[c.key] += 1
+    top = max(gains.values(), default=0)
+    return [{"label": CRITERION_LABELS[key], "gained": n, "best": n == top and n > 0} for key, n in gains.items()]
+
+
+def other_regions(profile):
+    """Other regions that do have native, non-invasive plants (name and count)."""
+    from django.db.models import Count, Q
+
+    from catalog.models import Region
+
+    return list(
+        Region.objects.exclude(pk=profile.region_id)
+        .annotate(n=Count("species_regions", filter=Q(species_regions__species__is_active=True,
+                                                      species_regions__species__is_invasive=False)))
+        .filter(n__gt=0)
+        .order_by("-n", "name")
+    )

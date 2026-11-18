@@ -29,12 +29,17 @@ def match_profile(request, pk):
     profile = get_object_or_404(GrowProfile.objects.select_related("region"), pk=pk, user=request.user)
     matches = services.rank(profile)
     show_all = request.GET.get("all") == "1"
+    has_fit = any(m.score >= services.LOW_FIT for m in matches)
     context = {
         "profile": profile,
         "summary": describe(profile),
         "total": len(matches),
         "matches": matches if show_all else matches[:SHORTLIST],
         "show_all": show_all,
+        "has_fit": has_fit,
+        # US-10: when nothing fits well, say which answer to relax and where else plants grow.
+        "hints": [] if has_fit else services.relaxing_hints(matches),
+        "other_regions": [] if has_fit else services.other_regions(profile),
         "viewer": "customer",
         **page_band(request, "Your matches", f"Native plants ranked for your {profile.name} profile.",
                     ("My grow profiles", reverse("grow_profiles")), (profile.name, None), ("Matches", None)),

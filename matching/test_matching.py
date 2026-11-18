@@ -127,6 +127,13 @@ class MatchPageTests(Base):
         self.assertContains(page, "Out of stock")
         self.assertContains(page, reverse("cart_add", args=[a.pk]))
 
+    def test_the_page_is_wrapped_in_the_site_layout(self):
+        self.species("Neem")
+        page = self.client.get(self.url())
+        self.assertTemplateUsed(page, "accounts/site_base.html")
+        self.assertContains(page, "<title>Your matches · Basera</title>", html=True)
+        self.assertContains(page, 'class="bt-header')
+
     def test_out_of_stock_plants_have_no_add_to_cart(self):
         gone = self.species("Gone", stock_qty=0)
         self.assertNotContains(self.client.get(self.url()), reverse("cart_add", args=[gone.pk]))
@@ -208,3 +215,74 @@ class ReasonTests(Base):
         self.assertContains(page, "Prefers full sun — your space gets full sun.")
         self.assertContains(page, "Ecological benefit:")
         self.assertContains(page, "Provides dense shade and its flowers support bees.")
+
+
+@FAST_HASHERS
+class InvasiveAndNoMatchTests(Base):
+    """US-10: invasive plants never match; an empty or weak result says what to relax."""
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.customer)
+        self.url = reverse("match_profile", args=[self.profile.pk])
+
+    def test_invasive_species_never_appear_even_when_they_fit_perfectly(self):
+        bad = self.species("Mesquite", is_invasive=True)
+        good = self.species("Neem")
+        page = self.client.get(self.url)
+        self.assertNotContains(page, "Mesquite")
+        self.assertNotContains(page, reverse("species_detail", args=[bad.pk]))
+        self.assertContains(page, reverse("species_detail", args=[good.pk]))
+
+    def test_no_seeded_invasive_species_is_ever_matched(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        call_command("seed_catalog", stdout=StringIO())
+        invasive = set(PlantSpecies.objects.filter(is_invasive=True).values_list("pk", flat=True))
+        self.assertTrue(invasive)
+        for region in Region.objects.all():
+            for sun in ("FULL_SUN", "SHADE"):
+                profile = GrowProfile.objects.create(user=self.customer, region=region, name="t", space_type="OUTDOOR",
+                                                     sunlight=sun, soil_type="SANDY", water_availability="LOW",
+                                                     purpose="ORNAMENTAL")
+                matched = {m.species.pk for m in services.rank(profile)}
+                self.assertFalse(matched & invasive, f"{region} / {sun}")
+
+    def test_the_invasive_catalogue_page_warns_and_offers_no_cart(self):
+        bad = self.species("Mesquite", is_invasive=True)
+        page = self.client.get(reverse("species_detail", args=[bad.pk]))
+        self.assertContains(page, "Invasive species — not sold on Basera")
+        self.assertNotContains(page, reverse("cart_add", args=[bad.pk]))
+
+    def test_a_region_with_no_plants_says_so_and_lists_regions_that_have_some(self):
+        self.species("Alpine", regions=[self.other_region])
+        page = self.client.get(self.url)
+        self.assertContains(page, "No native species match this profile")
+        self.assertContains(page, "Try relaxing one answer below")
+        self.assertContains(page, "Northern Highlands")
+        self.assertContains(page, reverse("grow_profile_new"))
+
+    def weak(self):
+        # sun 0 + soil 0 + water 10 + setting 15 + purpose 0 = 25 points: a low fit.
+        return self.species("Weak", light_need="Shade", water_need="High", suitable_soils="Clay",
+                            setting="OUTDOOR", ecological_role="Feeds bees.")
+
+    def test_when_every_plant_is_a_weak_fit_it_says_which_answer_to_relax(self):
+        self.weak()
+        page = self.client.get(self.url)
+        self.assertContains(page, "No strong matches for this profile yet")
+        self.assertContains(page, "Adds the most")
+        self.assertContains(page, "Weak")  # still listed, marked as a low fit
+
+    def test_relaxing_hints_count_plants_that_would_reach_a_fit(self):
+        self.weak()
+        matches = services.rank(self.profile)
+        self.assertEqual(matches[0].score, 25)
+        hints = {h["label"]: h for h in services.relaxing_hints(matches)}
+        self.assertEqual(hints["Sunlight"]["gained"], 1)  # 25 + 30 = 55
+        self.assertEqual(hints["Soil"]["gained"], 1)      # 25 + 25 = 50
+        self.assertEqual(hints["Water"]["gained"], 0)     # 25 + 10 = 35, still under 40
+        self.assertEqual(hints["Purpose"]["gained"], 0)   # 25 + 10 = 35
+        self.assertTrue(hints["Sunlight"]["best"])
